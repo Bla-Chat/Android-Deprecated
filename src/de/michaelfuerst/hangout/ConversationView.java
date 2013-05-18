@@ -80,6 +80,7 @@ public class ConversationView extends LinearLayout {
 		this.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				setBackgroundColor(Color.rgb(240, 240, 255));
 				HangoutNetwork networkAdapter = HangoutNetwork.getInstance();
 				if (networkAdapter != null) {
 					String openConversation = nick;
@@ -89,6 +90,7 @@ public class ConversationView extends LinearLayout {
 					intent.putExtra("chatname", openConversationName);
 					getContext().startActivity(intent);
 				}
+				setBackgroundColor(0);
 			}
 		});
 	}

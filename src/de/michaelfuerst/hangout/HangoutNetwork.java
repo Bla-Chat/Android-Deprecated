@@ -42,6 +42,7 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore.Video;
@@ -674,14 +675,22 @@ public class HangoutNetwork extends Service implements Runnable {
 		editor.commit();
 	}
 
-	public void unmark(String conversation) {
+	public void unmark(final String conversation) {
 		unmarkLocal(conversation);
+		
+		new AsyncTask<Void, Void, Void>() {
+			@Override
+			protected Void doInBackground(Void... params) {
 
-		String jsonString = "{\"type\":\"onEvent\", \"msg\":{\"user\":\""
-				+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \"" + id
-				+ "\", \"type\":\"onMessage\", \"message\":\"" + conversation
-				+ "\"}}";
-		submit(jsonString, HANGOUT_SERVER);
+				String jsonString = "{\"type\":\"onRemoveEvent\", \"msg\":{\"user\":\""
+						+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \"" + id
+						+ "\", \"conversation\":\"" + conversation
+						+ "\"}}";
+				submit(jsonString, HANGOUT_SERVER);
+				return null;
+			}
+			
+		}.execute();
 	}
 	
 	private void unmarkLocal(String conversation) {
