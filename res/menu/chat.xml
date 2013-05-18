@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/action_settings"/>
+    <item android:id="@+id/action_addToConversation" android:showAsAction="never" android:title="@string/action_addToConversation"></item><item android:id="@+id/action_addVideo" android:showAsAction="never" android:title="@string/action_addVideo"></item><item android:id="@+id/action_addImage" android:showAsAction="never" android:title="@string/action_addImage"></item>
+    
+    
+
+</menu>
