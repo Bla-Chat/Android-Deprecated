@@ -49,7 +49,7 @@ import android.provider.MediaStore.Video;
 /**
  * Retrieves and sends network messages.
  * 
- * @author michael
+ * @author Michael Fürst
  * @version 1.0
  */
 public class HangoutNetwork extends Service implements Runnable {
@@ -71,7 +71,6 @@ public class HangoutNetwork extends Service implements Runnable {
 	private boolean isReady = false;
 	private LinkedList<String> markedConversations = new LinkedList<String>();
 	private boolean offline = false;
-	private LinkedList<String> notifications = new LinkedList<String>();
 
 	public void setParent(Activity parent) {
 		this.parent = parent;
@@ -163,13 +162,7 @@ public class HangoutNetwork extends Service implements Runnable {
 					JSONArray ja = new JSONArray(result);
 					for (int i = 0; i < ja.length(); i++) {
 						JSONObject jo = (JSONObject) ja.get(i);
-						String type = jo.getString("type");
-						String msg = jo.getString("msg");
-						String trigger = jo.getString("nick");
-						String text = jo.getString("text");
-						if (type.equals("onMessage")) {
-							onReceiveMessage(trigger, msg, text);
-						}
+						handleIncoming(jo);
 					}
 				}
 			} catch (JSONException e1) {
@@ -197,16 +190,22 @@ public class HangoutNetwork extends Service implements Runnable {
 			JSONArray ja = new JSONArray(submit(jsonString, HANGOUT_SERVER));
 			for (int i = 0; i < ja.length(); i++) {
 				JSONObject jo = (JSONObject) ja.get(i);
-				String type = jo.getString("type");
-				String msg = jo.getString("msg");
-				String trigger = jo.getString("nick");
-				String text = jo.getString("text");
-				if (type.equals("onMessage")) {
-					onReceiveMessage(trigger, msg, text);
-				}
+				handleIncoming(jo);
 			}
 		} catch (JSONException e1) {
 			e1.printStackTrace();
+		}
+	}
+
+	private void handleIncoming(JSONObject jo) throws JSONException {
+		String type = jo.getString("type");
+		String msg = jo.getString("msg");
+		String trigger = jo.getString("nick");
+		String text = jo.getString("text");
+		if (type.equals("onMessage")) {
+			onReceiveMessage(trigger, msg, text);
+		} else if (type.equals("onMessageHandled")) {
+			unmarkLocal(msg);
 		}
 	}
 
@@ -225,22 +224,19 @@ public class HangoutNetwork extends Service implements Runnable {
 	 */
 	private void onReceiveMessage(String trigger, String conversation,
 			String text) {
-		if (!notifications.contains(trigger + ";" + conversation + ";" + text)) {
-			if (!conversation.equals(this.activeConversation) || status >= 120) {
-				if (text.startsWith("#image")) {
-					text = "Image received";
-				} else if (text.startsWith("#video")) {
-					text = "Video received";
-				} else if (text.startsWith("#file")) {
-					text = "File received";
-				}
-				addNotification(conversation, text, true);
-				status = 120;
+		if (!conversation.equals(this.activeConversation) || status >= 120) {
+			if (text.startsWith("#image")) {
+				text = "Image received";
+			} else if (text.startsWith("#video")) {
+				text = "Video received";
+			} else if (text.startsWith("#file")) {
+				text = "File received";
 			}
-			for (MessageListener l : listeners) {
-				l.onMessageReceived(trigger, conversation);
-			}
-			notifications.add(trigger + ";" + conversation + ";" + text);
+			addNotification(conversation, text, true);
+			status = 120;
+		}
+		for (MessageListener l : listeners) {
+			l.onMessageReceived(trigger, conversation);
 		}
 	}
 
@@ -675,6 +671,16 @@ public class HangoutNetwork extends Service implements Runnable {
 	}
 
 	public void unmark(String conversation) {
+		unmarkLocal(conversation);
+
+		String jsonString = "{\"type\":\"onEvent\", \"msg\":{\"user\":\""
+				+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \"" + id
+				+ "\", \"type\":\"onMessage\", \"message\":\"" + conversation
+				+ "\"}}";
+		submit(jsonString, HANGOUT_SERVER);
+	}
+	
+	private void unmarkLocal(String conversation) {
 		markedConversations.remove(conversation);
 		String temp = "";
 		conversations = getConversations();
@@ -692,12 +698,6 @@ public class HangoutNetwork extends Service implements Runnable {
 		SharedPreferences.Editor editor = app_preferences.edit();
 		editor.putString("conversations", temp);
 		editor.commit();
-
-		String jsonString = "{\"type\":\"onEvent\", \"msg\":{\"user\":\""
-				+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \"" + id
-				+ "\", \"type\":\"onMessage\", \"message\":\"" + conversation
-				+ "\"}}";
-		submit(jsonString, HANGOUT_SERVER);
 	}
 
 	public LinkedList<String> getMarkedConversations() {
