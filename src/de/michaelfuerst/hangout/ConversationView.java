@@ -31,8 +31,35 @@ import android.widget.TextView;
  */
 public class ConversationView extends LinearLayout {
 	
-	public ConversationView(Context ctx, final String name, final String nick) {
-		super(ctx);
+	private static final double MICROICONSIZE = 96;
+
+
+	public ConversationView(final Conversations parent, final String name, final String nick) {
+		super(parent);
+		createChilds(parent, name, nick);
+		this.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				setBackgroundColor(Color.rgb(245, 245, 255));
+				HangoutNetwork networkAdapter = HangoutNetwork.getInstance();
+				if (networkAdapter != null) {
+					String openConversation = nick;
+					networkAdapter.unmark(openConversation);
+					parent.autoMark();
+					detachAllViewsFromParent();
+					createChilds(parent, name, nick);
+					String openConversationName = name;
+					Intent intent = new Intent(getContext(), Chat.class);
+					intent.putExtra("chatnick", openConversation);
+					intent.putExtra("chatname", openConversationName);
+					getContext().startActivity(intent);
+				}
+			}
+		});
+	}
+
+	
+	private void createChilds(Context parent, String name, String nick) {
 		String user = HangoutNetwork.getInstance().getUser();
 		String s[] = nick.split(",");
 		String localNick = nick;
@@ -43,10 +70,10 @@ public class ConversationView extends LinearLayout {
 				localNick = s[1];
 			}
 		}
-		RelativeLayout  v = new RelativeLayout (ctx);
+		RelativeLayout  v = new RelativeLayout (parent);
 		v.setMinimumHeight(96);
 		v.setMinimumWidth(96);
-		ImageView iv = getImageView(HangoutNetwork.HANGOUT_SERVER + "/imgs/profile_"+localNick+".png");
+		ImageView iv = getImageView(parent, HangoutNetwork.HANGOUT_SERVER + "/imgs/profile_"+localNick+".png");
 		if (iv != null) {
 			iv.setAdjustViewBounds(true);
 			iv.setMaxHeight(96);
@@ -56,14 +83,14 @@ public class ConversationView extends LinearLayout {
 			v.addView(iv);
 			addView(v);
 		}
-		TextView t = new TextView(ctx);
+		TextView t = new TextView(parent);
 		t.setText(name);
 		t.setPadding(16, 24, 0, 24);
 		addView(t);
 		if (HangoutNetwork.getInstance().getMarkedConversations().contains(nick)) {
-			iv = getImageView(HangoutNetwork.HANGOUT_SERVER + "/imgs/marker.png");
+			iv = getImageView(parent, HangoutNetwork.HANGOUT_SERVER + "/imgs/marker.png");
 
-			v = new RelativeLayout (ctx);
+			v = new RelativeLayout (parent);
 			v.setMinimumHeight(96);
 			v.setMinimumWidth(96);
 			
@@ -77,31 +104,15 @@ public class ConversationView extends LinearLayout {
 			addView(v);
 		}
 		setPadding(5, 5, 5, 5);
-		this.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				setBackgroundColor(Color.rgb(240, 240, 255));
-				HangoutNetwork networkAdapter = HangoutNetwork.getInstance();
-				if (networkAdapter != null) {
-					String openConversation = nick;
-					String openConversationName = name;
-					Intent intent = new Intent(getContext(), Chat.class);
-					intent.putExtra("chatnick", openConversation);
-					intent.putExtra("chatname", openConversationName);
-					getContext().startActivity(intent);
-				}
-				setBackgroundColor(0);
-			}
-		});
 	}
 
-	
-	private ImageView getImageView(final String path) {
+
+	private ImageView getImageView(final Context ctx, final String path) {
 		final ImageView iv = new ImageView(getContext());
 		String preFile = path.split("/")[path.split("/").length - 1];
 		String filename = Environment.getExternalStorageDirectory()+"/BlaChat/" + preFile.split("\\.")[0] + ".png";
 		if (new File(filename).exists()) {
-			iv.setImageDrawable(LocalResourceManager.getDrawable(filename));
+			iv.setImageDrawable(LocalResourceManager.getDrawable(ctx, filename, MICROICONSIZE));
 		}
 		new AsyncTask<Object, Object, Drawable>() {
 
@@ -135,7 +146,7 @@ public class ConversationView extends LinearLayout {
 						bitmap.compress(CompressFormat.PNG, 100,
 								new FileOutputStream(file));
 					}
-					image = LocalResourceManager.getDrawable(filename);
+					image = LocalResourceManager.getDrawable(ctx, filename, MICROICONSIZE);
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				} catch (IOException e) {

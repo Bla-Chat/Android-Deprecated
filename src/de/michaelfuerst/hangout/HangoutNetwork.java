@@ -566,11 +566,21 @@ public class HangoutNetwork extends Service implements Runnable {
 		final Notification notification = new Notification(
 				R.drawable.ic_launcher, text, System.currentTimeMillis());
 
+		Intent intent;
+		if (name != null) {
+			intent = new Intent(getBaseContext(),
+					Chat.class);
+			intent.putExtra("chatname", name);
+			intent.putExtra("chatnick", conversation);
+		} else {
+			intent = new Intent(getBaseContext(),
+					Conversation.class);
+		}
+		
 		// used to call up this specific intent when you click on the
 		// notification
 		final PendingIntent contentIntent = PendingIntent.getActivity(
-				getBaseContext(), 0, new Intent(getBaseContext(),
-						Conversations.class), Notification.FLAG_AUTO_CANCEL);
+				getBaseContext(), 0, intent, Notification.FLAG_AUTO_CANCEL);
 
 		notification.setLatestEventInfo(getBaseContext(), name, text,
 				contentIntent);
@@ -676,23 +686,29 @@ public class HangoutNetwork extends Service implements Runnable {
 	}
 
 	public void unmark(final String conversation) {
-		unmarkLocal(conversation);
-		
-		new AsyncTask<Void, Void, Void>() {
-			@Override
-			protected Void doInBackground(Void... params) {
+		if (markedConversations.contains(conversation)) {
+			unmarkLocal(conversation);
 
-				String jsonString = "{\"type\":\"onRemoveEvent\", \"msg\":{\"user\":\""
-						+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \"" + id
-						+ "\", \"conversation\":\"" + conversation
-						+ "\"}}";
-				submit(jsonString, HANGOUT_SERVER);
-				return null;
-			}
-			
-		}.execute();
+			new AsyncTask<Void, Void, Void>() {
+				@Override
+				protected Void doInBackground(Void... params) {
+
+					String jsonString = "{\"type\":\"onRemoveEvent\", \"msg\":{\"user\":\""
+							+ nick
+							+ "\" , \"password\": \""
+							+ pw
+							+ "\", \"id\": \""
+							+ id
+							+ "\", \"conversation\":\""
+							+ conversation + "\"}}";
+					submit(jsonString, HANGOUT_SERVER);
+					return null;
+				}
+
+			}.execute();
+		}
 	}
-	
+
 	private void unmarkLocal(String conversation) {
 		markedConversations.remove(conversation);
 		String temp = "";
@@ -885,14 +901,15 @@ public class HangoutNetwork extends Service implements Runnable {
 	}
 
 	private LinkedList<String> reloadFiles = new LinkedList<String>();
+
 	public void requireFileReload(String preFile) {
 		reloadFiles.add(preFile);
 	}
-	
+
 	public boolean reloadFile(String preFile) {
 		return reloadFiles.contains(preFile);
 	}
-	
+
 	public void fileReloaded(String preFile) {
 		reloadFiles.remove(preFile);
 	}

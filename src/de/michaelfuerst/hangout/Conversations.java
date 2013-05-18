@@ -95,7 +95,7 @@ public class Conversations extends Activity {
 		}
 	}
 
-	private void autoMark() {
+	public void autoMark() {
 		SharedPreferences app_preferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
 

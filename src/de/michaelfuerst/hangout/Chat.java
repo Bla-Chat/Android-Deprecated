@@ -41,6 +41,7 @@ public class Chat extends Activity {
 
 	private static final int VIDEO_RESULT = 0;
 	private static final int IMAGE_RESULT = 0;
+	private static final double IMAGE_SCALAR = 250;
 	private String nick = null;
 	private String name = null;
 	private HangoutNetwork networkAdapter = null;
@@ -64,75 +65,90 @@ public class Chat extends Activity {
 		Intent intent = getIntent();
 		nick = intent.getStringExtra("chatnick");
 		name = intent.getStringExtra("chatname");
-		if (name.endsWith("*")) {
-			name = name.substring(0, name.length() - 1);
-		}
-
+		setTitle(name);
+		
 		networkAdapter = HangoutNetwork.getInstance();
 		if (networkAdapter == null) {
 			startService(new Intent(this, HangoutNetwork.class));
 		}
-		networkAdapter.unmark(nick);
 
-		if (!networkAdapter.isRunning()) {
-			startService(new Intent(this, HangoutNetwork.class));
-			LoginNetworkThread t = new LoginNetworkThread(this);
-			t.start();
-		}
-		networkAdapter.setParent(this);
+		initializeAsync();
+	}
 
-		SharedPreferences app_preferences = PreferenceManager
-				.getDefaultSharedPreferences(this);
-
-		String[] splits = app_preferences.getString("chatHistory_" + nick, "")
-				.split("ﺿ");
-		chatList = new ChatMessage[splits.length];
-		for (int i = 0; i < splits.length; i++) {
-			String[] sub = splits[i].split("◘");
-			if (sub.length == 4) {
-				chatList[i] = new ChatMessage();
-				chatList[i].author = sub[0];
-				chatList[i].message = sub[1];
-				chatList[i].sender = sub[2];
-				chatList[i].time = sub[3];
-			}
-		}
-		drawHistory(chatList);
-
-		final Button button = (Button) findViewById(R.id.button1);
-		final Chat parent = this;
-		button.setOnTouchListener(new View.OnTouchListener() {
+	private void initializeAsync() {
+		final Chat that = this;
+		new AsyncTask<Void, Void, Void>() {
 
 			@Override
-			public boolean onTouch(View arg0, MotionEvent arg1) {
-				networkAdapter.requestResume();
-				if (arg0 == button) {
-					String message = ((EditText) findViewById(R.id.editText1))
-							.getText().toString();
-					if (!message.equals("")) {
-						new SendMessageThread(parent, message, nick).start();
-						((EditText) findViewById(R.id.editText1)).setText("");
-						insertMessage(message);
+			protected Void doInBackground(Void... params) {
+				while (networkAdapter == null) {
+					networkAdapter = HangoutNetwork.getInstance();
+					try {
+						Thread.sleep(16);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
-					return true;
 				}
-				return false;
+
+				if (!networkAdapter.isRunning()) {
+					startService(new Intent(that, HangoutNetwork.class));
+					LoginNetworkThread t = new LoginNetworkThread(that);
+					t.start();
+				}
+				networkAdapter.setParent(that);
+				
+				SharedPreferences app_preferences = PreferenceManager
+						.getDefaultSharedPreferences(that);
+
+				String[] splits = app_preferences.getString(
+						"chatHistory_" + nick, "").split("ﺿ");
+				chatList = new ChatMessage[splits.length];
+				for (int i = 0; i < splits.length; i++) {
+					String[] sub = splits[i].split("◘");
+					if (sub.length == 4) {
+						chatList[i] = new ChatMessage();
+						chatList[i].author = sub[0];
+						chatList[i].message = sub[1];
+						chatList[i].sender = sub[2];
+						chatList[i].time = sub[3];
+					}
+				}
+				return null;
 			}
-		});
+			
+			@Override
+			public void onPostExecute(Void a) {
+				drawHistory(chatList);
 
-		networkAdapter.attachMessageListener(ml);
-		networkAdapter.setActiveConversation(nick);
-		updateHistory();
-		setTitle(name);
+				final Button button = (Button) findViewById(R.id.button1);
+				final Chat parent = that;
+				button.setOnTouchListener(new View.OnTouchListener() {
 
-		// for(int i = 0; i < conversationNicks.size(); i++) {
-		// if (conversationNicks.get(i).equals(conversation)) {
-		// if(conversationNicks.get(i).endsWith("*")) {
-		// conversations.set(i, conversations.get(i));
-		// }
-		// networkAdapter.setNotification(conversation);
-		// }
-		// }
+					@Override
+					public boolean onTouch(View arg0, MotionEvent arg1) {
+						networkAdapter.requestResume();
+						if (arg0 == button) {
+							String message = ((EditText) findViewById(R.id.editText1))
+									.getText().toString();
+							if (!message.equals("")) {
+								new SendMessageThread(parent, message, nick)
+										.start();
+								((EditText) findViewById(R.id.editText1))
+										.setText("");
+								insertMessage(message);
+							}
+							return true;
+						}
+						return false;
+					}
+				});
+
+				networkAdapter.attachMessageListener(ml);
+				networkAdapter.setActiveConversation(nick);
+				updateHistory();
+			}
+
+		}.execute();
 	}
 
 	private void insertMessage(String message) {
@@ -199,38 +215,39 @@ public class Chat extends Activity {
 		setChatList(messages);
 	}
 
-	/*private View getFileView(String path) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private View getVideoView(String path) {
-		VideoView vv = new VideoView(this);
-		vv.setMediaController(new MediaController(this));
-		vv.setVideoURI(Uri.parse(path));
-		vv.start();
-		return vv;
-	}*/
+	/*
+	 * private View getFileView(String path) { // TODO Auto-generated method
+	 * stub return null; }
+	 * 
+	 * private View getVideoView(String path) { VideoView vv = new
+	 * VideoView(this); vv.setMediaController(new MediaController(this));
+	 * vv.setVideoURI(Uri.parse(path)); vv.start(); return vv; }
+	 */
 
 	private View getImageView(final String path) {
 		final ImageView iv = new ImageView(this);
 		String preFile = path.split("/")[path.split("/").length - 1];
-		String filename = Environment.getExternalStorageDirectory()+"/BlaChat/" + preFile.split("\\.")[0] + ".png";
+		String filename = Environment.getExternalStorageDirectory()
+				+ "/BlaChat/" + preFile.split("\\.")[0] + ".png";
 		if (new File(filename).exists()) {
-			iv.setImageDrawable(LocalResourceManager.getDrawable(filename));
+			iv.setImageDrawable(LocalResourceManager.getDrawable(this, filename, IMAGE_SCALAR));
 		}
+		final Chat that = this;
 		new AsyncTask<Object, Object, Drawable>() {
 
 			@Override
 			protected Drawable doInBackground(Object... arg0) {
 				Drawable image = null;
 				try {
-					File sysPath = new File(Environment.getExternalStorageDirectory()+"/BlaChat");
+					File sysPath = new File(
+							Environment.getExternalStorageDirectory()
+									+ "/BlaChat");
 					if (!sysPath.exists()) {
 						sysPath.mkdirs();
 					}
 					String preFile = path.split("/")[path.split("/").length - 1];
-					String filename = Environment.getExternalStorageDirectory()+"/BlaChat/" + preFile.split("\\.")[0] + ".png";
+					String filename = Environment.getExternalStorageDirectory()
+							+ "/BlaChat/" + preFile.split("\\.")[0] + ".png";
 					if (!new File(filename).exists()) {
 						// First create a new URL object
 						URL url = new URL(path);
@@ -252,7 +269,7 @@ public class Chat extends Activity {
 								new FileOutputStream(file));
 						bitmap.recycle();
 					}
-					image = LocalResourceManager.getDrawable(filename);
+					image = LocalResourceManager.getDrawable(that, filename, IMAGE_SCALAR);
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -291,8 +308,9 @@ public class Chat extends Activity {
 		getMenuInflater().inflate(R.menu.chat, menu);
 		return true;
 	}
-	
-	private static String tmp_image = Environment.getExternalStorageDirectory()+"/BlaChat/tmp.png";
+
+	private static String tmp_image = Environment.getExternalStorageDirectory()
+			+ "/BlaChat/tmp.png";
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -308,7 +326,8 @@ public class Chat extends Activity {
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
 		case R.id.action_addImage:
-			Intent imageCaptureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+			Intent imageCaptureIntent = new Intent(
+					MediaStore.ACTION_IMAGE_CAPTURE);
 			imageCaptureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
 					Uri.fromFile(new File(tmp_image)));
 			startActivityForResult(imageCaptureIntent, IMAGE_RESULT);
@@ -348,7 +367,6 @@ public class Chat extends Activity {
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 
-	
 	@Override
 	protected void onPause() {
 		networkAdapter.requestPause();
@@ -358,9 +376,25 @@ public class Chat extends Activity {
 
 	@Override
 	protected void onResume() {
-		networkAdapter.requestResume();
-		networkAdapter.setParent(this);
-		networkAdapter.unmark(nick);
+		final Chat that = this;
+		new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				while (networkAdapter == null) {
+					try {
+						Thread.sleep(16);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				networkAdapter.requestResume();
+				networkAdapter.setParent(that);
+				networkAdapter.unmark(nick);
+				return null;
+			}
+			
+		}.execute();
 		super.onResume();
 	}
 
