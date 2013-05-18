@@ -206,6 +206,10 @@ public class HangoutNetwork extends Service implements Runnable {
 			onReceiveMessage(trigger, msg, text);
 		} else if (type.equals("onMessageHandled")) {
 			unmarkLocal(msg);
+		} else if (type.equals("onConversation")) {
+			updateConversations();
+		} else if (type.equals("forceReload")) {
+			requireFileReload(msg);
 		}
 	}
 
@@ -869,5 +873,18 @@ public class HangoutNetwork extends Service implements Runnable {
 				}
 			}
 		}.start();
+	}
+
+	private LinkedList<String> reloadFiles = new LinkedList<String>();
+	public void requireFileReload(String preFile) {
+		reloadFiles.add(preFile);
+	}
+	
+	public boolean reloadFile(String preFile) {
+		return reloadFiles.contains(preFile);
+	}
+	
+	public void fileReloaded(String preFile) {
+		reloadFiles.remove(preFile);
 	}
 }

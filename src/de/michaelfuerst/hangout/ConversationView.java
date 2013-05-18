@@ -113,7 +113,8 @@ public class ConversationView extends LinearLayout {
 					}
 					String preFile = path.split("/")[path.split("/").length - 1];
 					String filename = Environment.getExternalStorageDirectory()+"/BlaChat/" + preFile.split("\\.")[0] + ".png";
-					if (!new File(filename).exists() || Math.random() > 0.1) {
+					if (!new File(filename).exists() || HangoutNetwork.getInstance().reloadFile(preFile)) {
+						HangoutNetwork.getInstance().fileReloaded(preFile);
 						// First create a new URL object
 						URL url = new URL(path);
 
