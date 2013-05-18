@@ -27,6 +27,7 @@ import android.text.util.Linkify;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
@@ -41,7 +42,7 @@ public class Chat extends Activity {
 
 	private static final int VIDEO_RESULT = 0;
 	private static final int IMAGE_RESULT = 0;
-	private static final double IMAGE_SCALAR = 250;
+	private static final int IMAGE_MAX_SIZE = 250;
 	private String nick = null;
 	private String name = null;
 	private HangoutNetwork networkAdapter = null;
@@ -226,11 +227,13 @@ public class Chat extends Activity {
 
 	private View getImageView(final String path) {
 		final ImageView iv = new ImageView(this);
+		iv.setMaxHeight(IMAGE_MAX_SIZE);
+		iv.setMaxWidth(IMAGE_MAX_SIZE);
 		String preFile = path.split("/")[path.split("/").length - 1];
 		String filename = Environment.getExternalStorageDirectory()
 				+ "/BlaChat/" + preFile.split("\\.")[0] + ".png";
 		if (new File(filename).exists()) {
-			iv.setImageDrawable(LocalResourceManager.getDrawable(this, filename, IMAGE_SCALAR));
+			iv.setImageDrawable(LocalResourceManager.getDrawable(this, filename, IMAGE_MAX_SIZE));
 		}
 		final Chat that = this;
 		new AsyncTask<Object, Object, Drawable>() {
@@ -269,7 +272,7 @@ public class Chat extends Activity {
 								new FileOutputStream(file));
 						bitmap.recycle();
 					}
-					image = LocalResourceManager.getDrawable(that, filename, IMAGE_SCALAR);
+					image = LocalResourceManager.getDrawable(that, filename, IMAGE_MAX_SIZE);
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				} catch (IOException e) {

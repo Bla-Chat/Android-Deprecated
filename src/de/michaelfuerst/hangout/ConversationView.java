@@ -31,7 +31,7 @@ import android.widget.TextView;
  */
 public class ConversationView extends LinearLayout {
 	
-	private static final double MICROICONSIZE = 96;
+	private static final int PROFILE_IMAGE_SIZE = 96;
 
 
 	public ConversationView(final Conversations parent, final String name, final String nick) {
@@ -112,7 +112,7 @@ public class ConversationView extends LinearLayout {
 		String preFile = path.split("/")[path.split("/").length - 1];
 		String filename = Environment.getExternalStorageDirectory()+"/BlaChat/" + preFile.split("\\.")[0] + ".png";
 		if (new File(filename).exists()) {
-			iv.setImageDrawable(LocalResourceManager.getDrawable(ctx, filename, MICROICONSIZE));
+			iv.setImageDrawable(LocalResourceManager.getDrawable(ctx, filename, PROFILE_IMAGE_SIZE));
 		}
 		new AsyncTask<Object, Object, Drawable>() {
 
@@ -146,7 +146,7 @@ public class ConversationView extends LinearLayout {
 						bitmap.compress(CompressFormat.PNG, 100,
 								new FileOutputStream(file));
 					}
-					image = LocalResourceManager.getDrawable(ctx, filename, MICROICONSIZE);
+					image = LocalResourceManager.getDrawable(ctx, filename, PROFILE_IMAGE_SIZE);
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
