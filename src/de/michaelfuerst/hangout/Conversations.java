@@ -51,7 +51,6 @@ public class Conversations extends Activity {
 						LoginNetworkThread t = new LoginNetworkThread(that);
 						t.start();
 					}
-					networkAdapter.setParent(that);
 					conversations = networkAdapter.getConversations();
 
 					networkAdapter.setActiveConversation(null);
@@ -69,7 +68,6 @@ public class Conversations extends Activity {
 				LoginNetworkThread t = new LoginNetworkThread(this);
 				t.start();
 			}
-			networkAdapter.setParent(this);
 			conversations = networkAdapter.getConversations();
 			networkAdapter.setActiveConversation(null);
 		}
@@ -147,7 +145,6 @@ public class Conversations extends Activity {
 	protected void onPause() {
 		if (networkAdapter != null) {
 			networkAdapter.requestPause();
-			networkAdapter.setParent(null);
 		}
 		super.onPause();
 	}
@@ -156,7 +153,6 @@ public class Conversations extends Activity {
 	protected void onResume() {
 		if (networkAdapter != null) {
 			networkAdapter.requestResumeLowFrequency();
-			networkAdapter.setParent(this);
 			ConversationInitThread t = new ConversationInitThread(this);
 			t.execute();
 		}

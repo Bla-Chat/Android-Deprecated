@@ -6,7 +6,6 @@ package de.michaelfuerst.hangout;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -30,7 +29,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -68,14 +66,9 @@ public class HangoutNetwork extends Service implements Runnable {
 	private boolean isRunning = false;
 	private String activeConversation = null;
 	private static final int mId = 0;
-	private Activity parent = null;
 	private boolean isReady = false;
 	private LinkedList<String> markedConversations = new LinkedList<String>();
 	private boolean offline = false;
-
-	public void setParent(Activity parent) {
-		this.parent = parent;
-	}
 
 	public void setActiveConversation(String newConversation) {
 		activeConversation = newConversation;
@@ -108,14 +101,12 @@ public class HangoutNetwork extends Service implements Runnable {
 
 	private void runService() {
 		status = 120;
-		setPersistent("Authentificating");
 		if (!isReady) {
 			LoginNetworkThread t = new LoginNetworkThread(this);
 			t.start();
 			try {
 				t.join();
 			} catch (InterruptedException e) {
-				setPersistent("Login error");
 			}
 		}
 		int loginDelay = 1;
@@ -128,7 +119,6 @@ public class HangoutNetwork extends Service implements Runnable {
 			}
 			loginDelay++;
 		}
-		setPersistent("Online");
 		isRunning = true;
 		tryToRetrieveOldMessages();
 		SharedPreferences app_preferences = PreferenceManager
@@ -149,9 +139,6 @@ public class HangoutNetwork extends Service implements Runnable {
 				status += 500;
 			} else {
 				status = 3000; // 5 minute lock
-			}
-			if (!offline) {
-				setPersistent("Online (" + status + ")");
 			}
 
 			String jsonString = "{\"type\":\"onEvent\", \"msg\":{\"user\":\""
@@ -283,10 +270,8 @@ public class HangoutNetwork extends Service implements Runnable {
 			e.printStackTrace();
 		}
 		if ((message == null || message.equals("")) && !offline) {
-			setPersistent("Lost Connection");
 			offline = true;
 		} else if (offline) {
-			setPersistent("Online");
 			offline = false;
 		}
 
@@ -605,20 +590,6 @@ public class HangoutNetwork extends Service implements Runnable {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	public void setPersistent(String status) {
-		String name = getString(R.string.app_name);
-		Notification notification = new Notification(R.drawable.ic_launcher,
-				name, System.currentTimeMillis());
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-				new Intent(this, Conversations.class),
-				Notification.FLAG_ONGOING_EVENT);
-		notification.flags = Notification.FLAG_ONGOING_EVENT;
-		notification.setLatestEventInfo(this, name, status, contentIntent);
-		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		mNotificationManager.notify(mId + 1, notification);
-	}
-
 	public void removeNotification() {
 		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		mNotificationManager.cancel(mId);
@@ -662,7 +633,7 @@ public class HangoutNetwork extends Service implements Runnable {
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		return new HIBinder(this);
+		return null;
 	}
 
 	public void mark(String conversation) {
@@ -743,6 +714,7 @@ public class HangoutNetwork extends Service implements Runnable {
 
 	public void send(final Bitmap bmp, final String conversation) {
 		new Thread() {
+			@SuppressWarnings("deprecation")
 			public void run() {
 				String jsonString = "{\"type\":\"onData\", \"msg\":{\"user\":\""
 						+ nick
@@ -803,7 +775,7 @@ public class HangoutNetwork extends Service implements Runnable {
 							response.append(line).append('\n');
 						}
 
-						String result = response.toString();
+						// String result = response.toString();
 						// Ignored atm.
 					} finally {
 						if (dis != null)
@@ -823,6 +795,7 @@ public class HangoutNetwork extends Service implements Runnable {
 
 	public void send(final Video vid, final String conversation) {
 		new Thread() {
+			@SuppressWarnings("deprecation")
 			public void run() {
 				String jsonString = "{\"type\":\"onData\", \"msg\":{\"user\":\""
 						+ nick
@@ -835,7 +808,7 @@ public class HangoutNetwork extends Service implements Runnable {
 					HttpURLConnection conn = null;
 					DataOutputStream dos = null;
 					DataInputStream dis = null;
-					FileInputStream fileInputStream = null;
+					//FileInputStream fileInputStream = null;
 					URL url = new URL(HANGOUT_SERVER + "/api.php");
 					// ------------------ CLIENT REQUEST
 
@@ -883,7 +856,7 @@ public class HangoutNetwork extends Service implements Runnable {
 							response.append(line).append('\n');
 						}
 
-						String result = response.toString();
+						//String result = response.toString();
 						// Ignored atm.
 					} finally {
 						if (dis != null)

@@ -27,7 +27,6 @@ import android.text.util.Linkify;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
@@ -96,7 +95,6 @@ public class Chat extends Activity {
 					LoginNetworkThread t = new LoginNetworkThread(that);
 					t.start();
 				}
-				networkAdapter.setParent(that);
 				
 				SharedPreferences app_preferences = PreferenceManager
 						.getDefaultSharedPreferences(that);
@@ -373,13 +371,11 @@ public class Chat extends Activity {
 	@Override
 	protected void onPause() {
 		networkAdapter.requestPause();
-		networkAdapter.setParent(null);
 		super.onPause();
 	}
 
 	@Override
 	protected void onResume() {
-		final Chat that = this;
 		new AsyncTask<Void, Void, Void>() {
 
 			@Override
@@ -392,7 +388,6 @@ public class Chat extends Activity {
 					}
 				}
 				networkAdapter.requestResume();
-				networkAdapter.setParent(that);
 				networkAdapter.unmark(nick);
 				return null;
 			}
