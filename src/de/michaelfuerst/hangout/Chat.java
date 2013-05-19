@@ -190,6 +190,14 @@ public class Chat extends Activity {
 					// view.addView(getFileView(c.message.split(" ")[1]));
 					view.addView(textView);
 					c.message = "file: " + c.message.split(" ")[1];
+				} else if (c.message.startsWith("#hangout")) {
+					if (c.message.startsWith("#hangout on")) {
+						view.addView(textView);
+						c.message = "hangouts are not supported on this device";
+					} else {
+						view.addView(textView);
+						c.message = "hangout is over";
+					}
 				} else {
 					view.addView(textView);
 					c.message = c.message.replaceAll("&quot;", "\"");
@@ -409,7 +417,7 @@ public class Chat extends Activity {
 		if (networkAdapter != null) {
 			networkAdapter.requestPause();
 		}
-		
+
 		LocalResourceManager.clear();
 
 		if (chatList != null) {
