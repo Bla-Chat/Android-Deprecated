@@ -67,7 +67,7 @@ public class Chat extends Activity {
 		nick = intent.getStringExtra("chatnick");
 		name = intent.getStringExtra("chatname");
 		setTitle(name);
-		
+
 		networkAdapter = HangoutNetwork.getInstance();
 		if (networkAdapter == null) {
 			startService(new Intent(this, HangoutNetwork.class));
@@ -97,7 +97,7 @@ public class Chat extends Activity {
 					LoginNetworkThread t = new LoginNetworkThread(that);
 					t.start();
 				}
-				
+
 				SharedPreferences app_preferences = PreferenceManager
 						.getDefaultSharedPreferences(that);
 
@@ -116,7 +116,7 @@ public class Chat extends Activity {
 				}
 				return null;
 			}
-			
+
 			@Override
 			public void onPostExecute(Void a) {
 				drawHistory(chatList);
@@ -167,52 +167,52 @@ public class Chat extends Activity {
 
 	public void drawHistory(ChatMessage[] messages) {
 		if (isAlive) {
-		LinearLayout ll = (LinearLayout) findViewById(R.id.messages);
-		ll.removeAllViews();
+			LinearLayout ll = (LinearLayout) findViewById(R.id.messages);
+			ll.removeAllViews();
 
-		for (ChatMessage c : messages) {
-			if (c == null) {
-				continue;
+			for (ChatMessage c : messages) {
+				if (c == null) {
+					continue;
+				}
+				RelativeLayout outer = new RelativeLayout(this);
+				LinearLayout view = new LinearLayout(this);
+				view.setOrientation(LinearLayout.VERTICAL);
+				TextView textView = new TextView(this);
+				TextView title = new TextView(this);
+				view.addView(title);
+				if (c.message.startsWith("#image")) {
+					view.addView(getImageView(c.message.split(" ")[1]));
+				} else if (c.message.startsWith("#video")) {
+					// view.addView(getVideoView(c.message.split(" ")[1]));
+					view.addView(textView);
+					c.message = "video: " + c.message.split(" ")[1];
+				} else if (c.message.startsWith("#file")) {
+					// view.addView(getFileView(c.message.split(" ")[1]));
+					view.addView(textView);
+					c.message = "file: " + c.message.split(" ")[1];
+				} else {
+					view.addView(textView);
+					c.message = c.message.replaceAll("&quot;", "\"");
+					c.message = c.message.replaceAll("&lt;", "<");
+					c.message = c.message.replaceAll("&gt;", ">");
+				}
+				view.setPadding(4, 4, 4, 4);
+				outer.addView(view);
+				textView.setAutoLinkMask(Linkify.ALL);
+				textView.setText(c.message);
+				if (c.author.equals(HangoutNetwork.getInstance().getUser())) {
+					view.setBackgroundColor(Color.rgb(245, 255, 245));
+					outer.setGravity(Gravity.RIGHT);
+					outer.setPadding(48, 4, 4, 4);
+					title.setText("You (" + c.time + ")");
+				} else {
+					view.setBackgroundColor(Color.rgb(245, 245, 255));
+					outer.setPadding(4, 4, 48, 4);
+					title.setText(c.sender + " (" + c.time + ")");
+				}
+				textView.setAutoLinkMask(Linkify.ALL);
+				ll.addView(outer);
 			}
-			RelativeLayout outer = new RelativeLayout(this);
-			LinearLayout view = new LinearLayout(this);
-			view.setOrientation(LinearLayout.VERTICAL);
-			TextView textView = new TextView(this);
-			TextView title = new TextView(this);
-			view.addView(title);
-			if (c.message.startsWith("#image")) {
-				view.addView(getImageView(c.message.split(" ")[1]));
-			} else if (c.message.startsWith("#video")) {
-				// view.addView(getVideoView(c.message.split(" ")[1]));
-				view.addView(textView);
-				c.message = "video: " + c.message.split(" ")[1];
-			} else if (c.message.startsWith("#file")) {
-				// view.addView(getFileView(c.message.split(" ")[1]));
-				view.addView(textView);
-				c.message = "file: " + c.message.split(" ")[1];
-			} else {
-				view.addView(textView);
-				c.message = c.message.replaceAll("&quot;", "\"");
-				c.message = c.message.replaceAll("&lt;", "<");
-				c.message = c.message.replaceAll("&gt;", ">");
-			}
-			view.setPadding(4, 4, 4, 4);
-			outer.addView(view);
-			textView.setAutoLinkMask(Linkify.ALL);
-			textView.setText(c.message);
-			if (c.author.equals(HangoutNetwork.getInstance().getUser())) {
-				view.setBackgroundColor(Color.rgb(245, 255, 245));
-				outer.setGravity(Gravity.RIGHT);
-				outer.setPadding(48, 4, 4, 4);
-				title.setText("You (" + c.time + ")");
-			} else {
-				view.setBackgroundColor(Color.rgb(245, 245, 255));
-				outer.setPadding(4, 4, 48, 4);
-				title.setText(c.sender + " (" + c.time + ")");
-			}
-			textView.setAutoLinkMask(Linkify.ALL);
-			ll.addView(outer);
-		}
 		}
 		setChatList(messages);
 	}
@@ -234,7 +234,8 @@ public class Chat extends Activity {
 		String filename = Environment.getExternalStorageDirectory()
 				+ "/BlaChat/" + preFile.split("\\.")[0] + ".png";
 		if (new File(filename).exists()) {
-			iv.setImageDrawable(LocalResourceManager.getDrawable(this, filename, IMAGE_MAX_SIZE));
+			iv.setImageDrawable(LocalResourceManager.getDrawable(this,
+					filename, IMAGE_MAX_SIZE));
 		}
 		final Chat that = this;
 		new AsyncTask<Object, Object, Drawable>() {
@@ -273,7 +274,8 @@ public class Chat extends Activity {
 								new FileOutputStream(file));
 						bitmap.recycle();
 					}
-					image = LocalResourceManager.getDrawable(that, filename, IMAGE_MAX_SIZE);
+					image = LocalResourceManager.getDrawable(that, filename,
+							IMAGE_MAX_SIZE);
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -373,7 +375,9 @@ public class Chat extends Activity {
 
 	@Override
 	protected void onPause() {
-		networkAdapter.requestPause();
+		if (networkAdapter != null) {
+			networkAdapter.requestPause();
+		}
 		super.onPause();
 	}
 
@@ -394,7 +398,7 @@ public class Chat extends Activity {
 				networkAdapter.unmark(nick);
 				return null;
 			}
-			
+
 		}.execute();
 		super.onResume();
 	}
@@ -402,20 +406,25 @@ public class Chat extends Activity {
 	@Override
 	public void onStop() {
 		isAlive = false;
-		networkAdapter.requestPause();
+		if (networkAdapter != null) {
+			networkAdapter.requestPause();
+		}
+		
 		LocalResourceManager.clear();
 
-		String temp = "";
-		for (int i = 0; i < chatList.length; i++) {
-			temp += chatList[i].author + "◘" + chatList[i].message + "◘"
-					+ chatList[i].sender + "◘" + chatList[i].time + "ﺿ";
-		}
+		if (chatList != null) {
+			String temp = "";
+			for (int i = 0; i < chatList.length; i++) {
+				temp += chatList[i].author + "◘" + chatList[i].message + "◘"
+						+ chatList[i].sender + "◘" + chatList[i].time + "ﺿ";
+			}
 
-		SharedPreferences app_preferences = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		SharedPreferences.Editor editor = app_preferences.edit();
-		editor.putString("chatHistory_" + nick, temp);
-		editor.commit();
+			SharedPreferences app_preferences = PreferenceManager
+					.getDefaultSharedPreferences(this);
+			SharedPreferences.Editor editor = app_preferences.edit();
+			editor.putString("chatHistory_" + nick, temp);
+			editor.commit();
+		}
 
 		super.onStop();
 	}
