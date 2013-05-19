@@ -37,6 +37,7 @@ public class ConversationView extends LinearLayout {
 	public ConversationView(final Conversations parent, final String name, final String nick) {
 		super(parent);
 		createChilds(parent, name, nick);
+		final ConversationView that = this;
 		this.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -54,6 +55,23 @@ public class ConversationView extends LinearLayout {
 					intent.putExtra("chatname", openConversationName);
 					getContext().startActivity(intent);
 				}
+				new AsyncTask<Void, Void, Void>() {
+
+					@Override
+					protected Void doInBackground(Void... params) {
+						try {
+							Thread.sleep(200);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						return null;
+					}
+					
+					@Override
+					protected void onPostExecute(Void v) {
+						that.setBackgroundColor(0);
+					}
+				}.execute();
 			}
 		});
 	}

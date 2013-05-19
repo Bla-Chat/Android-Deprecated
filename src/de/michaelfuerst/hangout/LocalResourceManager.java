@@ -1,6 +1,7 @@
 package de.michaelfuerst.hangout;
 
 import java.util.HashMap;
+import java.util.Set;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -17,7 +18,7 @@ public class LocalResourceManager {
 		Resources r = ctx.getResources();
 		double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, r.getDisplayMetrics());
 		maxSize = maxSize*px;
-		if (!map.containsKey(path)) {
+		if (!map.containsKey(path) || ((BitmapDrawable)map.get(path)).getBitmap().isRecycled()) {
 			BitmapFactory.Options bmpFac = new BitmapFactory.Options();
 			bmpFac.inJustDecodeBounds = true;
 			BitmapFactory.decodeFile(path, bmpFac); 
@@ -38,6 +39,10 @@ public class LocalResourceManager {
 	}
 	
 	public static void clear() {
+		Set<String> keys = map.keySet();
+		for (String k: keys) {
+			((BitmapDrawable)map.get(k)).getBitmap().recycle();
+		}
 		map.clear();
 	}
 }

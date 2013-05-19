@@ -45,6 +45,7 @@ public class Chat extends Activity {
 	private String nick = null;
 	private String name = null;
 	private HangoutNetwork networkAdapter = null;
+	private boolean isAlive = false;
 	private MessageListener ml = new MessageListener() {
 		@Override
 		public void onMessageReceived(String message, String conversation) {
@@ -71,6 +72,7 @@ public class Chat extends Activity {
 		if (networkAdapter == null) {
 			startService(new Intent(this, HangoutNetwork.class));
 		}
+		isAlive = true;
 
 		initializeAsync();
 	}
@@ -164,6 +166,7 @@ public class Chat extends Activity {
 	}
 
 	public void drawHistory(ChatMessage[] messages) {
+		if (isAlive) {
 		LinearLayout ll = (LinearLayout) findViewById(R.id.messages);
 		ll.removeAllViews();
 
@@ -210,7 +213,7 @@ public class Chat extends Activity {
 			textView.setAutoLinkMask(Linkify.ALL);
 			ll.addView(outer);
 		}
-
+		}
 		setChatList(messages);
 	}
 
@@ -398,6 +401,7 @@ public class Chat extends Activity {
 
 	@Override
 	public void onStop() {
+		isAlive = false;
 		networkAdapter.requestPause();
 		LocalResourceManager.clear();
 

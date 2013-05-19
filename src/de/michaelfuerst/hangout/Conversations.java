@@ -19,11 +19,13 @@ public class Conversations extends Activity {
 	private LinkedList<String> conversations = null;
 	private HangoutNetwork networkAdapter = null;
 	boolean waiting = false;
+	private boolean isAlive = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		final Conversations that = this;
+		isAlive = true;
 
 		networkAdapter = HangoutNetwork.getInstance();
 		if (networkAdapter == null) {
@@ -89,7 +91,6 @@ public class Conversations extends Activity {
 					}
 				}
 			}
-			updateData();
 		}
 	}
 
@@ -153,6 +154,7 @@ public class Conversations extends Activity {
 	protected void onResume() {
 		if (networkAdapter != null) {
 			networkAdapter.requestResumeLowFrequency();
+			updateData();
 			ConversationInitThread t = new ConversationInitThread(this);
 			t.execute();
 		}
@@ -160,7 +162,7 @@ public class Conversations extends Activity {
 	}
 
 	public void updateData() {
-		if (networkAdapter != null) {
+		if (networkAdapter != null && isAlive) {
 			autoMark();
 			ScrollView scrollView = (ScrollView) findViewById(R.id.ScrollView1);
 			LinearLayout ll = new LinearLayout(this);
@@ -178,6 +180,7 @@ public class Conversations extends Activity {
 
 	@Override
 	public void onStop() {
+		isAlive = false;
 		saveConversations();
 		LocalResourceManager.clear();
 		super.onStop();
