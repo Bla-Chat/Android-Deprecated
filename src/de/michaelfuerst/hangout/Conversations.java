@@ -147,11 +147,16 @@ public class Conversations extends Activity {
 		if (networkAdapter != null) {
 			networkAdapter.requestPause();
 		}
+		ScrollView scrollView = (ScrollView) findViewById(R.id.ScrollView1);
+		if (scrollView != null)
+			scrollView.removeAllViews();
+		LocalResourceManager.clear();
 		super.onPause();
 	}
 
 	@Override
 	protected void onResume() {
+		isAlive = true;
 		if (networkAdapter != null) {
 			networkAdapter.requestResumeLowFrequency();
 			updateData();
@@ -182,7 +187,6 @@ public class Conversations extends Activity {
 	public void onStop() {
 		isAlive = false;
 		saveConversations();
-		LocalResourceManager.clear();
 		super.onStop();
 	}
 

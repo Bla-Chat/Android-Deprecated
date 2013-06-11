@@ -128,7 +128,7 @@ public class ConversationView extends LinearLayout {
 	private ImageView getImageView(final Context ctx, final String path) {
 		final ImageView iv = new ImageView(getContext());
 		String preFile = path.split("/")[path.split("/").length - 1];
-		String filename = Environment.getExternalStorageDirectory()+"/BlaChat/" + preFile.split("\\.")[0] + ".png";
+		String filename = Environment.getExternalStorageDirectory()+"/Pictures/BlaChat/" + preFile.split("\\.")[0] + ".png";
 		if (new File(filename).exists()) {
 			iv.setImageDrawable(LocalResourceManager.getDrawable(ctx, filename, PROFILE_IMAGE_SIZE));
 		}
@@ -138,12 +138,12 @@ public class ConversationView extends LinearLayout {
 			protected Drawable doInBackground(Object... arg0) {
 				Drawable image = null;
 				try {
-					File sysPath = new File(Environment.getExternalStorageDirectory()+"/BlaChat");
+					File sysPath = new File(Environment.getExternalStorageDirectory()+"/Pictures/BlaChat");
 					if (!sysPath.exists()) {
 						sysPath.mkdirs();
 					}
 					String preFile = path.split("/")[path.split("/").length - 1];
-					String filename = Environment.getExternalStorageDirectory()+"/BlaChat/" + preFile.split("\\.")[0] + ".png";
+					String filename = Environment.getExternalStorageDirectory()+"/Pictures/BlaChat/" + preFile.split("\\.")[0] + ".png";
 					if (!new File(filename).exists() || HangoutNetwork.getInstance().reloadFile(preFile)) {
 						HangoutNetwork.getInstance().fileReloaded(preFile);
 						// First create a new URL object

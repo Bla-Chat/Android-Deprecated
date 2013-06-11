@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -72,9 +73,6 @@ public class Chat extends Activity {
 		if (networkAdapter == null) {
 			startService(new Intent(this, HangoutNetwork.class));
 		}
-		isAlive = true;
-
-		initializeAsync();
 	}
 
 	private void initializeAsync() {
@@ -236,11 +234,22 @@ public class Chat extends Activity {
 
 	private View getImageView(final String path) {
 		final ImageView iv = new ImageView(this);
+		String preFile = path.split("/")[path.split("/").length - 1];
+		final String filename = Environment.getExternalStorageDirectory()
+				+ "/Pictures/BlaChat/" + preFile.split("\\.")[0] + ".png";
+		iv.setOnTouchListener(new OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					Intent intent = new Intent(Intent.ACTION_VIEW);
+					intent.setDataAndType(Uri.parse("file://"+filename), "image/*");
+					startActivity(intent);
+				}
+				return true;
+			}
+		});
 		iv.setMaxHeight(IMAGE_MAX_SIZE);
 		iv.setMaxWidth(IMAGE_MAX_SIZE);
-		String preFile = path.split("/")[path.split("/").length - 1];
-		String filename = Environment.getExternalStorageDirectory()
-				+ "/BlaChat/" + preFile.split("\\.")[0] + ".png";
 		if (new File(filename).exists()) {
 			iv.setImageDrawable(LocalResourceManager.getDrawable(this,
 					filename, IMAGE_MAX_SIZE));
@@ -254,13 +263,13 @@ public class Chat extends Activity {
 				try {
 					File sysPath = new File(
 							Environment.getExternalStorageDirectory()
-									+ "/BlaChat");
+									+ "/Pictures/BlaChat");
 					if (!sysPath.exists()) {
 						sysPath.mkdirs();
 					}
 					String preFile = path.split("/")[path.split("/").length - 1];
 					String filename = Environment.getExternalStorageDirectory()
-							+ "/BlaChat/" + preFile.split("\\.")[0] + ".png";
+							+ "/Pictures/BlaChat/" + preFile.split("\\.")[0] + ".png";
 					if (!new File(filename).exists()) {
 						// First create a new URL object
 						URL url = new URL(path);
@@ -324,7 +333,7 @@ public class Chat extends Activity {
 	}
 
 	private static String tmp_image = Environment.getExternalStorageDirectory()
-			+ "/BlaChat/tmp.png";
+			+ "/Pictures/BlaChat/tmp.png";
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -383,14 +392,23 @@ public class Chat extends Activity {
 
 	@Override
 	protected void onPause() {
+		isAlive = false;
 		if (networkAdapter != null) {
 			networkAdapter.requestPause();
 		}
+
+		LinearLayout ll = (LinearLayout) findViewById(R.id.messages);
+		if (ll != null)
+			ll.removeAllViews();
+		
+		LocalResourceManager.clear();
 		super.onPause();
 	}
 
 	@Override
 	protected void onResume() {
+		isAlive = true;
+		initializeAsync();
 		new AsyncTask<Void, Void, Void>() {
 
 			@Override
@@ -413,13 +431,6 @@ public class Chat extends Activity {
 
 	@Override
 	public void onStop() {
-		isAlive = false;
-		if (networkAdapter != null) {
-			networkAdapter.requestPause();
-		}
-
-		LocalResourceManager.clear();
-
 		if (chatList != null) {
 			String temp = "";
 			for (int i = 0; i < chatList.length; i++) {
