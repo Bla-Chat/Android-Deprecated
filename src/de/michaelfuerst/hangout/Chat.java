@@ -22,6 +22,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 import android.text.util.Linkify;
@@ -168,7 +169,9 @@ public class Chat extends Activity {
 			LinearLayout ll = (LinearLayout) findViewById(R.id.messages);
 			ll.removeAllViews();
 
-			for (ChatMessage c : messages) {
+			ChatMessage c = null;
+			for (int i = messages.length-1; i >= 0; i--) {
+				c = messages[i];
 				if (c == null) {
 					continue;
 				}
@@ -220,6 +223,15 @@ public class Chat extends Activity {
 				ll.addView(outer);
 			}
 		}
+
+		final ScrollView sc = (ScrollView) findViewById(R.id.scrollView1);
+		sc.post(new Runnable() {
+
+	        @Override
+	        public void run() {
+	            sc.fullScroll(ScrollView.FOCUS_DOWN);
+	        }
+	    });
 		setChatList(messages);
 	}
 
