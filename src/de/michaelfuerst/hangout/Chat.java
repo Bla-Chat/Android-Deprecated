@@ -240,7 +240,7 @@ public class Chat extends Activity {
 		iv.setOnTouchListener(new OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+				if (event.getAction() == MotionEvent.ACTION_UP) {
 					Intent intent = new Intent(Intent.ACTION_VIEW);
 					intent.setDataAndType(Uri.parse("file://"+filename), "image/*");
 					startActivity(intent);
