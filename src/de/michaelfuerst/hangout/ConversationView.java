@@ -126,11 +126,12 @@ public class ConversationView extends LinearLayout {
 
 
 	private ImageView getImageView(final Context ctx, final String path) {
-		final ImageView iv = new ImageView(getContext());
+		final AutoBufferingImageView iv = new AutoBufferingImageView(getContext());
 		String preFile = path.split("/")[path.split("/").length - 1];
-		String filename = Environment.getExternalStorageDirectory()+"/Pictures/BlaChat/" + preFile.split("\\.")[0] + ".png";
+		final String filename = Environment.getExternalStorageDirectory()+"/Pictures/BlaChat/" + preFile.split("\\.")[0] + ".png";
 		if (new File(filename).exists()) {
 			iv.setImageDrawable(LocalResourceManager.getDrawable(ctx, filename, PROFILE_IMAGE_SIZE));
+			iv.setImage(filename, PROFILE_IMAGE_SIZE);
 		}
 		new AsyncTask<Object, Object, Drawable>() {
 
@@ -177,8 +178,10 @@ public class ConversationView extends LinearLayout {
 			protected void onPostExecute(Drawable image) {
 				if (image != null) {
 					iv.setImageDrawable(image);
+					iv.setImage(filename, PROFILE_IMAGE_SIZE);
 				} else {
 					iv.setBackgroundColor(Color.rgb(0, 0, 0));
+					iv.setImage("none", PROFILE_IMAGE_SIZE);
 				}
 			}
 		}.execute();

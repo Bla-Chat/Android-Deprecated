@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 import android.text.util.Linkify;
 import android.annotation.TargetApi;
@@ -245,7 +246,7 @@ public class Chat extends Activity {
 	 */
 
 	private View getImageView(final String path) {
-		final ImageView iv = new ImageView(this);
+		final AutoBufferingImageView iv = new AutoBufferingImageView(this);
 		String preFile = path.split("/")[path.split("/").length - 1];
 		final String filename = Environment.getExternalStorageDirectory()
 				+ "/Pictures/BlaChat/" + preFile.split("\\.")[0] + ".png";
@@ -265,6 +266,7 @@ public class Chat extends Activity {
 		if (new File(filename).exists()) {
 			iv.setImageDrawable(LocalResourceManager.getDrawable(this,
 					filename, IMAGE_MAX_SIZE));
+			iv.setImage(filename, IMAGE_MAX_SIZE);
 		}
 		final Chat that = this;
 		new AsyncTask<Object, Object, Drawable>() {
@@ -315,8 +317,10 @@ public class Chat extends Activity {
 
 			@Override
 			protected void onPostExecute(Drawable image) {
-				if (image != null)
+				if (image != null) {
 					iv.setImageDrawable(image);
+					iv.setImage(filename, IMAGE_MAX_SIZE);
+				}
 			}
 		}.execute();
 		return iv;
@@ -373,6 +377,7 @@ public class Chat extends Activity {
 			return true;
 		case R.id.action_addToConversation:
 			// TODO
+			Toast.makeText(this, "Upcoming feature", Toast.LENGTH_SHORT).show();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -382,6 +387,7 @@ public class Chat extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == IMAGE_RESULT) {
 			if (resultCode == Activity.RESULT_OK) {
+				Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG).show();
 				BitmapFactory.Options options = new BitmapFactory.Options();
 				options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 				options.inSampleSize = 2;
@@ -392,6 +398,7 @@ public class Chat extends Activity {
 			}
 		} else if (requestCode == VIDEO_RESULT) {
 			if (resultCode == Activity.RESULT_OK) {
+				Toast.makeText(this, "Uploading video", Toast.LENGTH_LONG).show();
 				Bundle b = data.getExtras();
 				Video vid = (Video) b.get("data");
 				if (vid != null) {
@@ -408,10 +415,6 @@ public class Chat extends Activity {
 		if (networkAdapter != null) {
 			networkAdapter.requestPause();
 		}
-
-		LinearLayout ll = (LinearLayout) findViewById(R.id.messages);
-		if (ll != null)
-			ll.removeAllViews();
 		
 		LocalResourceManager.clear();
 		super.onPause();

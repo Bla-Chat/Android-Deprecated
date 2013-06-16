@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
 public class Conversations extends Activity {
 
@@ -134,9 +135,11 @@ public class Conversations extends Activity {
 			return true;
 		case R.id.action_addFriend:
 			// TODO
+			Toast.makeText(this, "Upcoming feature", Toast.LENGTH_SHORT).show();
 			return true;
 		case R.id.action_newConversation:
 			// TODO
+			Toast.makeText(this, "Upcoming feature", Toast.LENGTH_SHORT).show();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -147,9 +150,7 @@ public class Conversations extends Activity {
 		if (networkAdapter != null) {
 			networkAdapter.requestPause();
 		}
-		ScrollView scrollView = (ScrollView) findViewById(R.id.ScrollView1);
-		if (scrollView != null)
-			scrollView.removeAllViews();
+		
 		LocalResourceManager.clear();
 		super.onPause();
 	}
