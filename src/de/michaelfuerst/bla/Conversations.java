@@ -129,11 +129,17 @@ public class Conversations extends Activity implements MessageListener {
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
-							String value = input.getText().toString();
-							// TODO
-							Toast.makeText(parent,
-									"Upcoming feature: Add " + value,
-									Toast.LENGTH_SHORT).show();
+							final String value = input.getText().toString();
+							if (networkAdapter != null) {
+								new AsyncTask<Void, Void, Void>() {
+									@Override public Void doInBackground(Void... params) {
+										networkAdapter.friend(value);
+										return null;
+									}
+								}.execute();
+								Toast.makeText(parent, "Add " + value,
+										Toast.LENGTH_SHORT).show();
+							}
 						}
 					});
 

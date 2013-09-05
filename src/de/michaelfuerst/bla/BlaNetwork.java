@@ -15,6 +15,7 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -351,6 +352,100 @@ public class BlaNetwork extends Service implements Runnable {
 				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
 				+ "\" , \"conversation\": \"" + conversation
 				+ "\", \"message\": \"" + message + "\"}}";
+		return submit(jsonString, BLA_SERVER);
+	}
+	
+	/**
+	 * Rename a conversation
+	 * 
+	 * @param conversation
+	 *            The conversation to rename.
+	 * @param name
+	 *            The new name.
+	 */
+	public String rename(String conversation, String name) {
+		if (!isActive()) {
+			throw new NullPointerException("Logindata must be set first.");
+		}
+		synchronized (BlaNetwork.class) {
+			while (!isRunning()) {
+				try {
+					BlaNetwork.class.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		String jsonString = "{\"type\":\"onRenameConversation\", \"msg\":{\"user\":\""
+				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
+				+ "\" , \"conversation\": \"" + conversation
+				+ "\" , \"name\": \"" + name
+				+ "\"}}";
+		return submit(jsonString, BLA_SERVER);
+	}
+	
+	/**
+	 * Rename a conversation
+	 * 
+	 * @param conversation
+	 *            The conversation to rename.
+	 * @param name
+	 *            The new name.
+	 */
+	public String friend(String name) {
+		if (!isActive()) {
+			throw new NullPointerException("Logindata must be set first.");
+		}
+		synchronized (BlaNetwork.class) {
+			while (!isRunning()) {
+				try {
+					BlaNetwork.class.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		String jsonString = "{\"type\":\"onAddFriend\", \"msg\":{\"user\":\""
+				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
+				+ "\" , \"name\": \"" + name
+				+ "\"}}";
+		return submit(jsonString, BLA_SERVER);
+	}
+	
+	/**
+	 * Open a conversation
+	 * 
+	 * @param users
+	 *            The list of users who should be in the conversation.
+	 */
+	public String open(List<String> users) {
+		if (!isActive()) {
+			throw new NullPointerException("Logindata must be set first.");
+		}
+		synchronized (BlaNetwork.class) {
+			while (!isRunning()) {
+				try {
+					BlaNetwork.class.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		Collections.sort(users);
+		String conversation = "";
+		boolean first = true;
+		for (String u: users) {
+			if (first) {
+				first = false;
+			} else {
+				conversation += ",";
+			}
+			conversation += u;
+		}
+		String jsonString = "{\"type\":\"onNewConversation\", \"msg\":{\"user\":\""
+				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
+				+ "\" , \"conversation\": \"" + conversation
+				+ "\"}}";
 		return submit(jsonString, BLA_SERVER);
 	}
 
@@ -1124,10 +1219,5 @@ public class BlaNetwork extends Service implements Runnable {
 			}
 		}
 		return nick;
-	}
-
-	public void openConversation(LinkedList<String> participants, Context that) {
-		// TODO Auto-generated method stub
-
 	}
 }

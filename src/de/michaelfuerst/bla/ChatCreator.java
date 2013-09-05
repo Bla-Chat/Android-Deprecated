@@ -42,7 +42,7 @@ public class ChatCreator extends Activity {
 			@Override
 			public void onClick(View v) {
 				LinearLayout ll = (LinearLayout) findViewById(R.id.chatPartnerList);
-				LinkedList<String> participants = new LinkedList<String>();
+				final LinkedList<String> participants = new LinkedList<String>();
 				for (int i = 0; i < ll.getChildCount(); i++) {
 					CheckBox c = (CheckBox) ll.getChildAt(i);
 					if (c.isChecked()) {
@@ -52,7 +52,14 @@ public class ChatCreator extends Activity {
 						participants.add(tmp);
 					}
 				}
-				BlaNetwork.getInstance().openConversation(participants, that);
+				participants.add(BlaNetwork.getUser(that));
+				new AsyncTask<Void, Void, Void>() {
+					@Override public Void doInBackground(Void... params) {
+						BlaNetwork.getInstance().open(participants);
+						return null;
+					}
+				}.execute();
+				NavUtils.navigateUpFromSameTask(that);
 			}
 		});
 

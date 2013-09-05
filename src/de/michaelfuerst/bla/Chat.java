@@ -370,9 +370,7 @@ public class Chat extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.chat, menu);
-		MenuCompat.setShowAsAction(
-				menu.findItem(R.id.action_addToConversation), 1);
-		MenuCompat.setShowAsAction(menu.findItem(R.id.action_addImage), 2);
+		MenuCompat.setShowAsAction(menu.findItem(R.id.action_addImage), 1);
 		return true;
 	}
 
@@ -423,11 +421,21 @@ public class Chat extends Activity {
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
-							String value = input.getText().toString();
-							// TODO
-							Toast.makeText(parent,
-									"Upcoming feature: Rename " + value,
-									Toast.LENGTH_SHORT).show();
+							final String value = input.getText().toString();
+							networkAdapter = BlaNetwork.getInstance();
+							if (networkAdapter != null) {
+								new AsyncTask<Void, Void, Void>() {
+									@Override public Void doInBackground(Void... params) {
+										networkAdapter.rename(nick, value);
+										return null;
+									}
+								}.execute();
+								Toast.makeText(parent, "Renamed " + value,
+										Toast.LENGTH_SHORT).show();
+							} else {
+								Toast.makeText(parent, "Error cannot rename.",
+										Toast.LENGTH_SHORT).show();
+							}
 						}
 					});
 
@@ -441,39 +449,6 @@ public class Chat extends Activity {
 					});
 
 			alert.show();
-			return true;
-		case R.id.action_addToConversation:
-			AlertDialog.Builder alert2 = new AlertDialog.Builder(this);
-
-			alert2.setTitle("Add to Conversation");
-			alert2.setMessage("The nick of your friend");
-
-			// Set an EditText view to get user input
-			final EditText input2 = new EditText(this);
-			alert2.setView(input2);
-
-			alert2.setPositiveButton("Ok",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog,
-								int whichButton) {
-							String value = input2.getText().toString();
-							// TODO
-							Toast.makeText(parent,
-									"Upcoming feature: Add " + value,
-									Toast.LENGTH_SHORT).show();
-						}
-					});
-
-			alert2.setNegativeButton("Cancel",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog,
-								int whichButton) {
-							Toast.makeText(parent, "Canceled",
-									Toast.LENGTH_SHORT).show();
-						}
-					});
-
-			alert2.show();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
