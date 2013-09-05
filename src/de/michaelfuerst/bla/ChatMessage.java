@@ -1,11 +1,11 @@
 /**
  * 
  */
-package de.michaelfuerst.hangout;
+package de.michaelfuerst.bla;
 
 /**
  * @author Michael
- *
+ * 
  */
 public class ChatMessage {
 	public String sender;

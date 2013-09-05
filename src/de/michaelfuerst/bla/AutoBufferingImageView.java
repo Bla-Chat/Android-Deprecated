@@ -1,7 +1,7 @@
 /**
  * 
  */
-package de.michaelfuerst.hangout;
+package de.michaelfuerst.bla;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -9,10 +9,11 @@ import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.ImageView;
 
 /**
- * @author Michael Fürst
+ * @author Michael Fï¿½rst
  * @version 1.0
  */
 public class AutoBufferingImageView extends ImageView {
@@ -21,20 +22,27 @@ public class AutoBufferingImageView extends ImageView {
 	private Context ctx = null;
 	private double maxSize = 1.0d;
 	private boolean loading = false;
+	private int buffer = 0;
 
 	public AutoBufferingImageView(Context context) {
 		super(context);
 		ctx = context;
+		path = "none";
 	}
 
-	public void setImage(String path, double maxSize) {
+	public void setImage(String path, double maxSize, int buffer) {
 		this.path = path;
 		this.maxSize = maxSize;
+		this.buffer = buffer;
 	}
 
 	@Override
 	public void setImageDrawable(Drawable drawable) {
-		bmp = ((BitmapDrawable) drawable).getBitmap();
+		if (drawable != null) {
+			bmp = ((BitmapDrawable) drawable).getBitmap();
+		} else {
+			bmp = null;
+		}
 		super.setImageDrawable(drawable);
 		loading = false;
 	}
@@ -45,25 +53,31 @@ public class AutoBufferingImageView extends ImageView {
 			if (path.equals("none")) {
 				super.onDraw(canvas);
 			} else {
-				if (!bmp.isRecycled()) {
+				if (bmp != null && !bmp.isRecycled()) {
 					super.onDraw(canvas);
 				} else {
-					loading = true;
-					new AsyncTask<Void, Void, Drawable>() {
+					if (!loading) {
+						Log.d("ImageLoading", "Loading: " + path);
+						loading = true;
+						new AsyncTask<Void, Void, Drawable>() {
 
-						@Override
-						protected Drawable doInBackground(Void... params) {
-							return LocalResourceManager.getDrawable(ctx, path,
-									maxSize);
-						}
+							@Override
+							protected Drawable doInBackground(Void... params) {
+								return LocalResourceManager.getDrawable(ctx,
+										path, maxSize, buffer);
+							}
 
-						@Override
-						protected void onPostExecute(Drawable result) {
-							setImageDrawable(result);
-						}
-					}.execute();
+							@Override
+							protected void onPostExecute(Drawable result) {
+								setImageDrawable(result);
+								loading = false;
+							}
+						}.execute();
+					}
 				}
 			}
+		} else {
+			Log.d("Null", "Nullpath");
 		}
 	}
 }

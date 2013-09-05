@@ -1,7 +1,7 @@
 /**
  * 
  */
-package de.michaelfuerst.hangout;
+package de.michaelfuerst.bla;
 
 import android.os.AsyncTask;
 
@@ -18,9 +18,8 @@ public class ConversationInitThread extends AsyncTask<Object, Integer, Void> {
 
 	@Override
 	protected Void doInBackground(Object... params) {
-		HangoutNetwork networkAdapter = HangoutNetwork.getInstance();
+		BlaNetwork networkAdapter = BlaNetwork.getInstance();
 		networkAdapter.updateConversations();
-		parent.saveConversations();
 		return null;
 	}
 

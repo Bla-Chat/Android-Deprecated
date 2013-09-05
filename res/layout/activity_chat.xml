@@ -10,28 +10,21 @@
     android:paddingTop="0dp"
     tools:context=".Chat" >
 
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:text="@string/SendButton" />
-
     <EditText
         android:id="@+id/editText1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/button1"
         android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
         android:layout_marginBottom="6dp"
-        android:layout_toLeftOf="@+id/button1"
         android:ems="10"
         android:hint="@string/MessageLineHint"
         android:includeFontPadding="false"
-        android:inputType="text|textCapSentences|textAutoCorrect|textAutoComplete|textMultiLine"
+        android:inputType="text|textCapSentences|textAutoCorrect"
         android:scrollHorizontally="true"
         android:selectAllOnFocus="false"
+        android:imeOptions="actionSend"
         android:singleLine="false" >
 
     </EditText>

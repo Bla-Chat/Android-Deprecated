@@ -1,11 +1,11 @@
 /**
  * 
  */
-package de.michaelfuerst.hangout;
+package de.michaelfuerst.bla;
 
 /**
  * @author Michael
- *
+ * 
  */
 public class SendMessageThread extends Thread {
 	private String message;
@@ -17,10 +17,10 @@ public class SendMessageThread extends Thread {
 		this.nick = nick;
 		this.parent = parent;
 	}
-	
+
 	@Override
 	public void run() {
-		HangoutNetwork.getInstance().send(message, nick);
+		BlaNetwork.getInstance().send(message, nick);
 		parent.updateHistory();
 	}
 

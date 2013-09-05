@@ -7,10 +7,11 @@
     <string name="title_activity_chat">Chat</string>
     <string name="hello_world">Hello world!</string>
     <string name="MessageLineHint">Insert your message here</string>
-    <string name="action_addImage">AddImage</string>
-    <string name="action_addVideo">AddVideo</string>
-    <string name="action_newConversation">New Conversation</string>
+    <string name="action_addImage">Image</string>
+    <string name="action_addVideo">Video</string>
+    <string name="action_newConversation">New</string>
     <string name="action_addFriend">Add Friend</string>
-    <string name="action_addToConversation">Add Someone</string>
+    <string name="action_addToConversation">+</string>
+    <string name="title_activity_chat_creator">New Chat</string>
 
 </resources>

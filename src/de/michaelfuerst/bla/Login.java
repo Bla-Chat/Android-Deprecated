@@ -1,5 +1,6 @@
-package de.michaelfuerst.hangout;
+package de.michaelfuerst.bla;
 
+import de.michaelfuerst.hangout.R;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Activity which displays a login screen to the user, offering registration as
@@ -78,6 +80,17 @@ public class Login extends Activity {
 						attemptLogin();
 					}
 				});
+
+		/*
+		 * findViewById(R.id.action_forgot_password).setOnClickListener( new
+		 * View.OnClickListener() {
+		 * 
+		 * @Override public void onClick(View view) { attemptReset(); }
+		 * 
+		 * private void attemptReset() { // TODO Auto-generated method stub
+		 * 
+		 * } });
+		 */
 	}
 
 	@Override
@@ -135,15 +148,25 @@ public class Login extends Activity {
 			// perform the user login attempt.
 			mLoginStatusMessageView.setText(R.string.login_progress_signing_in);
 			showProgress(true);
-			//new UserLoginTask(this, mEmail, mPassword).execute();
+			// new UserLoginTask(this, mEmail, mPassword).execute();
 			new LoginNetworkThread(this, mEmail, mPassword).start();
 		}
+	}
+
+	public void attemptReset() {
+		Toast.makeText(this, "Unsuported Feature", Toast.LENGTH_LONG).show();
+		/*
+		 * Toast.makeText(this, "Trying to send reset e-mail",
+		 * Toast.LENGTH_LONG).show(); if (HangoutNetwork.getInstance() != null)
+		 * HangoutNetwork.getInstance().send("reset", "system");
+		 */
 	}
 
 	/**
 	 * Shows the progress UI and hides the login form.
 	 */
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2) void showProgress(final boolean show) {
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+	void showProgress(final boolean show) {
 		// On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
 		// for very easy animations. If available, use these APIs to fade-in
 		// the progress spinner.
@@ -185,20 +208,20 @@ public class Login extends Activity {
 	 * the user.
 	 */
 	public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-		
+
 		private Activity activity = null;
 		private String nick = null;
 		private String pw = null;
-		
+
 		public UserLoginTask(Activity activity, String nick, String pw) {
 			this.activity = activity;
 			this.nick = nick;
 			this.pw = pw;
 		}
-		
+
 		@Override
 		protected Boolean doInBackground(Void... params) {
-			return HangoutNetwork.getInstance().login(nick, pw, activity);
+			return BlaNetwork.getInstance().login(nick, pw, activity);
 		}
 
 		@Override

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package de.michaelfuerst.hangout;
+package de.michaelfuerst.bla;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -15,6 +15,7 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,6 +29,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import de.michaelfuerst.hangout.R;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -44,30 +47,34 @@ import android.os.AsyncTask;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore.Video;
+import android.util.Log;
 
 /**
  * Retrieves and sends network messages.
  * 
- * @author Michael F�rst
+ * @author Michael F�rst
  * @version 1.0
  */
-public class HangoutNetwork extends Service implements Runnable {
-	private static HangoutNetwork instance = null;
+public class BlaNetwork extends Service implements Runnable {
+	private static BlaNetwork instance = null;
 
-	public static String HANGOUT_SERVER = "https://www.ssl-id.de/hangout.f-online.net/api";
+	public final static String SEPERATOR = "◘";
+	public final static String EOL = "ﺿ";
+	public final static int CONVERSATION_PARAMETERS = 4;
+	public final static String BLA_SERVER = "https://www.ssl-id.de/bla.f-online.net/api";
 
 	private LinkedList<MessageListener> listeners = new LinkedList<MessageListener>();
-	private LinkedList<String> conversations = new LinkedList<String>();
-	private LinkedList<String> conversationNicks = new LinkedList<String>();
-	private String nick = null;
+	private final LinkedList<String> conversations;
+	private final LinkedList<String> conversationNicks;
+	private static String nick = null;
 	private String pw = null;
 	private int status = 120;
-	private String id = "";
+	private String id = "REJECTED";
 	private boolean isRunning = false;
 	private String activeConversation = null;
 	private static final int mId = 0;
 	private boolean isReady = false;
-	private LinkedList<String> markedConversations = new LinkedList<String>();
+	private final LinkedList<String> markedConversations;
 	private boolean offline = false;
 
 	public void setActiveConversation(String newConversation) {
@@ -78,15 +85,20 @@ public class HangoutNetwork extends Service implements Runnable {
 		return activeConversation;
 	}
 
-	public HangoutNetwork() {
+	/**
+	 * You must not call this, this is only public because the service needs to
+	 * call this.
+	 */
+	public BlaNetwork() {
 		super();
 		instance = this;
+		conversations = new LinkedList<String>();
+		conversationNicks = new LinkedList<String>();
+		markedConversations = new LinkedList<String>();
+		lastMessages = new HashMap<String, String>();
 	}
 
-	public static HangoutNetwork getInstance() {
-		// if (instance == null) {
-		// instance = new HangoutNetwork();
-		// }
+	public static BlaNetwork getInstance() {
 		return instance;
 	}
 
@@ -94,7 +106,7 @@ public class HangoutNetwork extends Service implements Runnable {
 	public void run() {
 		try {
 			runService();
-		} catch (Exception e) {
+		} catch (NullPointerException e) {
 			addNotification("ERROR", e.getMessage(), true);
 		}
 	}
@@ -106,21 +118,21 @@ public class HangoutNetwork extends Service implements Runnable {
 			t.start();
 			try {
 				t.join();
+				synchronized (BlaNetwork.class) {
+					while (!isReady) {
+						BlaNetwork.class.wait();
+					}
+				}
 			} catch (InterruptedException e) {
 			}
 		}
-		int loginDelay = 1;
-		while (!isReady) {
-			try {
-				Thread.sleep(100 * loginDelay); // sleep longer the more time
-												// passes.
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			loginDelay++;
+
+		synchronized (BlaNetwork.class) {
+			isRunning = true;
+			BlaNetwork.class.notifyAll();
 		}
-		isRunning = true;
 		tryToRetrieveOldMessages();
+		updateNotifications(false);
 		SharedPreferences app_preferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
 		SharedPreferences.Editor editor = app_preferences.edit();
@@ -130,7 +142,6 @@ public class HangoutNetwork extends Service implements Runnable {
 			long delay = status * 100;
 			if (status < 120) {
 				status += 10;
-				removeNotification();
 			} else if (status < 300) { // slightly increase status
 				status += 20;
 			} else if (status < 1500) { // make a cut to inactivity
@@ -145,7 +156,7 @@ public class HangoutNetwork extends Service implements Runnable {
 					+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \""
 					+ id + "\"}}";
 			try {
-				String result = submit(jsonString, HANGOUT_SERVER);
+				String result = submit(jsonString, BLA_SERVER);
 				if (result != null && !result.equals("")) {
 					JSONArray ja = new JSONArray(result);
 					for (int i = 0; i < ja.length(); i++) {
@@ -163,7 +174,10 @@ public class HangoutNetwork extends Service implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		isRunning = false;
+		synchronized (BlaNetwork.class) {
+			isRunning = false;
+			BlaNetwork.class.notifyAll();
+		}
 	}
 
 	private void tryToRetrieveOldMessages() {
@@ -175,7 +189,7 @@ public class HangoutNetwork extends Service implements Runnable {
 				+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \""
 				+ oldId + "\"}}";
 		try {
-			JSONArray ja = new JSONArray(submit(jsonString, HANGOUT_SERVER));
+			JSONArray ja = new JSONArray(submit(jsonString, BLA_SERVER));
 			for (int i = 0; i < ja.length(); i++) {
 				JSONObject jo = (JSONObject) ja.get(i);
 				handleIncoming(jo);
@@ -194,10 +208,14 @@ public class HangoutNetwork extends Service implements Runnable {
 			onReceiveMessage(trigger, msg, text);
 		} else if (type.equals("onMessageHandled")) {
 			unmarkLocal(msg);
+			removeNotification(msg);
+			Log.d("Network", "Handled: " + trigger + ";" + msg);
 		} else if (type.equals("onConversation")) {
 			updateConversations();
 		} else if (type.equals("forceReload")) {
 			requireFileReload(msg);
+		} else {
+			Log.d("Network", type + ":" + msg);
 		}
 	}
 
@@ -227,6 +245,7 @@ public class HangoutNetwork extends Service implements Runnable {
 			addNotification(conversation, text, true);
 			status = 120;
 		}
+		setLastMessage(conversation, text);
 		for (MessageListener l : listeners) {
 			l.onMessageReceived(trigger, conversation);
 		}
@@ -237,6 +256,7 @@ public class HangoutNetwork extends Service implements Runnable {
 			throw new NullPointerException("Logindata must be set first.");
 		}
 		String message = "";
+		String totalMessage = "";
 		try {
 			// Create a new HttpClient and Post Header
 			HttpClient httpclient = new DefaultHttpClient();
@@ -253,26 +273,33 @@ public class HangoutNetwork extends Service implements Runnable {
 
 			BufferedReader bufferedReader = new BufferedReader(
 					new InputStreamReader(response.getEntity().getContent()));
-			String next;
+
+			String next = null;
 			while ((next = bufferedReader.readLine()) != null) {
+				totalMessage += next + "\\n";
 				JSONObject jo = new JSONObject(next);
 
 				String type = jo.getString("type");
 				if (type.equals("onRejected")) {
-					message = "ERROR";
+					message = "REJECTED";
 				} else if (type.equals("onEvent")) {
 					message = jo.getString("msg");
 				} else {
 					message = jo.getString("msg");
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IOException e) {
+		} catch (JSONException e) {
+			message = "ERROR";
+			Log.d("NetworkError", "ERROR: " + totalMessage);
 		}
 		if ((message == null || message.equals("")) && !offline) {
 			offline = true;
+			Log.d("Connection", "no internet connection");
+			requestPause();
 		} else if (offline) {
 			offline = false;
+			requestResumeLowFrequency();
 		}
 
 		return message;
@@ -311,18 +338,20 @@ public class HangoutNetwork extends Service implements Runnable {
 		if (!isActive()) {
 			throw new NullPointerException("Logindata must be set first.");
 		}
-		while (!isRunning()) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		synchronized (BlaNetwork.class) {
+			while (!isRunning()) {
+				try {
+					BlaNetwork.class.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		String jsonString = "{\"type\":\"onMessage\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
 				+ "\" , \"conversation\": \"" + conversation
 				+ "\", \"message\": \"" + message + "\"}}";
-		return submit(jsonString, HANGOUT_SERVER);
+		return submit(jsonString, BLA_SERVER);
 	}
 
 	public void tryLogin(Context parent) {
@@ -342,14 +371,17 @@ public class HangoutNetwork extends Service implements Runnable {
 			pw = app_preferences.getString("pw", null);
 			id = getNetworkId();
 			// id = null;
-			if ((id == null || id.equals("ERROR") || id.equals(""))) {
+			if ((id == null || id.equals("REJECTED") || id.equals(""))) {
 				if ((parent != this) && (parent != null)) {
 					Intent intent = new Intent(parent.getApplicationContext(),
 							Login.class);
 					parent.startActivity(intent);
 				}
 			} else {
-				isReady = true;
+				synchronized (BlaNetwork.class) {
+					isReady = true;
+					BlaNetwork.class.notifyAll();
+				}
 			}
 		}
 	}
@@ -360,7 +392,7 @@ public class HangoutNetwork extends Service implements Runnable {
 		}
 		String jsonString = "{\"type\":\"onIdRequest\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\"}}";
-		return submit(jsonString, HANGOUT_SERVER);
+		return submit(jsonString, BLA_SERVER);
 	}
 
 	/**
@@ -389,7 +421,10 @@ public class HangoutNetwork extends Service implements Runnable {
 			// The logindata must have been wrong. Refill form.
 			return false;
 		} else {
-			isReady = true;
+			synchronized (BlaNetwork.class) {
+				isReady = true;
+				BlaNetwork.class.notifyAll();
+			}
 			return true;
 		}
 	}
@@ -401,6 +436,7 @@ public class HangoutNetwork extends Service implements Runnable {
 	 *            The listener for the events.
 	 */
 	public void attachMessageListener(MessageListener listener) {
+		Log.d("HangoutNetwork", "Attached: " + listener.toString());
 		listeners.add(listener);
 	}
 
@@ -410,17 +446,19 @@ public class HangoutNetwork extends Service implements Runnable {
 	 * @return The list of conversations.
 	 */
 	public void updateConversations() {
-		while (!isRunning) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		synchronized (BlaNetwork.class) {
+			while (!isRunning) {
+				try {
+					BlaNetwork.class.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		String jsonString = "{\"type\":\"onGetChats\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \"" + id
 				+ "\"}}";
-		String result = submit(jsonString, HANGOUT_SERVER);
+		String result = submit(jsonString, BLA_SERVER);
 		if (result == null || result.equals("")) {
 			return;
 		}
@@ -433,6 +471,7 @@ public class HangoutNetwork extends Service implements Runnable {
 				conversationNicks.add(((JSONObject) ja.get(i))
 						.getString("nick"));
 			}
+			saveConversations();
 		} catch (JSONException e1) {
 			e1.printStackTrace();
 		}
@@ -454,18 +493,20 @@ public class HangoutNetwork extends Service implements Runnable {
 	 * @return The chat history at the given id.
 	 */
 	public ChatMessage[] getChat(String conversation) {
-		while (!isRunning) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		synchronized (BlaNetwork.class) {
+			while (!isRunning) {
+				try {
+					BlaNetwork.class.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		LinkedList<ChatMessage> out = new LinkedList<ChatMessage>();
 		String jsonString = "{\"type\":\"onGetHistory\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \"" + id
 				+ "\", \"conversation\":\"" + conversation + "\"}}";
-		String result = submit(jsonString, HANGOUT_SERVER);
+		String result = submit(jsonString, BLA_SERVER);
 		if (result == null || result.equals("")) {
 			return null;
 		}
@@ -515,26 +556,33 @@ public class HangoutNetwork extends Service implements Runnable {
 		setStatus(110);
 	}
 
-	@SuppressWarnings("deprecation")
+	LinkedList<LocalNotification> notifications = new LinkedList<LocalNotification>();
+
 	public void addNotification(String conversation, String text,
 			boolean vibrate) {
-		String name = null;
-		// Get conversation names from memory if not loaded yet.
-		SharedPreferences app_preferences = PreferenceManager
-				.getDefaultSharedPreferences(this);
-
-		String[] splits = app_preferences.getString("conversations", "").split(
-				";");
-		for (String s : splits) {
-			String[] tmp = s.split("-");
-			if (tmp.length == 3) {
-				conversations.add(tmp[0]);
-				addConversationNick(tmp[1]);
-				if (tmp[2].equals("true")) {
-					mark(tmp[1]);
-				}
-			}
+		LocalNotification notification = new LocalNotification();
+		notification.conversation = conversation;
+		String name = getNameOfConversation(conversation);
+		if (name == null) {
+			name = conversation;
+		} else {
+			mark(conversation);
+			setLastMessage(conversation, text);
 		}
+		notification.name = name;
+		notification.message = text;
+		loadNotifications();
+		if (notifications.contains(notification)) {
+			notifications.remove(notification);
+		}
+		notifications.add(notification);
+		storeNotifications();
+		updateNotifications(vibrate);
+	}
+
+	private String getNameOfConversation(String conversation) {
+		String name = null;
+
 		if (conversations.size() == 0) {
 			updateConversations();
 		}
@@ -543,33 +591,30 @@ public class HangoutNetwork extends Service implements Runnable {
 				name = conversations.get(i);
 			}
 		}
-		if (name == null) {
-			name = conversation;
-		} else {
-			mark(conversation);
-		}
+		return name;
+	}
+
+	@SuppressWarnings("deprecation")
+	private void displayNotification(String conversation, String name,
+			String text, boolean vibrate) {
 		final Notification notification = new Notification(
 				R.drawable.ic_launcher, text, System.currentTimeMillis());
 
-		Intent intent;
-		if (name != null) {
-			intent = new Intent(getBaseContext(),
-					Chat.class);
+		PendingIntent resultIntent;
+		if (name != null && !conversation.equals("ERROR")) {
+			Intent intent = new Intent(getBaseContext(), Chat.class);
 			intent.putExtra("chatname", name);
 			intent.putExtra("chatnick", conversation);
+			resultIntent = PendingIntent.getActivity(getBaseContext(), 0,
+					intent, Notification.FLAG_AUTO_CANCEL);
 		} else {
-			intent = new Intent(getBaseContext(),
-					Conversation.class);
+			Intent intent = new Intent(getBaseContext(), Conversation.class);
+			resultIntent = PendingIntent.getActivity(getBaseContext(), 0,
+					intent, Notification.FLAG_AUTO_CANCEL);
 		}
-		
-		// used to call up this specific intent when you click on the
-		// notification
-		final PendingIntent contentIntent = PendingIntent.getActivity(
-				getBaseContext(), 0, intent, Notification.FLAG_AUTO_CANCEL);
 
 		notification.setLatestEventInfo(getBaseContext(), name, text,
-				contentIntent);
-		notification.defaults = Notification.DEFAULT_ALL;
+				resultIntent);
 
 		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		// mId allows you to update the notification later on.
@@ -578,21 +623,83 @@ public class HangoutNetwork extends Service implements Runnable {
 				.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 		if (alarmSound != null) {
 			notification.sound = alarmSound;
+		} else {
+			notification.sound = null;
 		}
-		if (vibrate) {
-			long[] pattern = { 100, 400 /* , 300, 800 */};
+		if (!vibrate) {
+			long[] pattern = {};
 			notification.vibrate = pattern;
+		} else {
+			notification.defaults = Notification.DEFAULT_ALL;
 		}
-		if (name.equals("ERROR")) {
+		if (conversation.equals("ERROR")) {
 			mNotificationManager.notify(mId + 1, notification);
 		} else {
 			mNotificationManager.notify(mId, notification);
 		}
 	}
 
-	public void removeNotification() {
-		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		mNotificationManager.cancel(mId);
+	public void removeNotification(String conversation) {
+		Log.d("Notification", "Removed: " + conversation);
+		LocalNotification notification = new LocalNotification();
+		loadNotifications();
+		notification.conversation = conversation;
+		if (notifications.contains(notification)) {
+			notifications.remove(notification);
+		}
+		storeNotifications();
+		updateNotifications(false);
+		BlaWidget.updateWidgets();
+	}
+
+	private void storeNotifications() {
+		String temp = "";
+		for (LocalNotification n : notifications) {
+			if (n.conversation.equals("ERROR"))
+				continue;
+			temp += n.conversation + SEPERATOR + n.message
+					+ BlaNetwork.SEPERATOR + n.name + BlaNetwork.EOL;
+		}
+
+		SharedPreferences app_preferences = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		SharedPreferences.Editor editor = app_preferences.edit();
+		editor.putString("notifications_" + nick, temp);
+		editor.commit();
+		Log.d("HangoutNetwork", "Stored Notifications");
+	}
+
+	private void loadNotifications() {
+		SharedPreferences app_preferences = PreferenceManager
+				.getDefaultSharedPreferences(this);
+
+		String[] splits = app_preferences
+				.getString("notifications_" + nick, "").split(BlaNetwork.EOL);
+		notifications.clear();
+		for (int i = 0; i < splits.length; i++) {
+			String[] sub = splits[i].split(BlaNetwork.SEPERATOR);
+			if (sub.length == 3) {
+				LocalNotification n = new LocalNotification();
+				n.conversation = sub[0];
+				n.message = sub[1];
+				n.name = sub[2];
+				notifications.add(n);
+			}
+		}
+		Log.d("HangoutNetwork", "Loaded Notifications");
+	}
+
+	private void updateNotifications(boolean vibrate) {
+		loadNotifications();
+		if (notifications.isEmpty()) {
+			NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			mNotificationManager.cancel(mId);
+		} else {
+			LocalNotification notification = notifications.getLast();
+			displayNotification(notification.conversation, notification.name,
+					notification.message, vibrate);
+		}
+		BlaWidget.updateWidgets();
 	}
 
 	public void addConversationNick(String string) {
@@ -629,6 +736,8 @@ public class HangoutNetwork extends Service implements Runnable {
 	@Override
 	public void onCreate() {
 		instance = this;
+		refreshConversations();
+		BlaWidget.updateWidgets();
 	}
 
 	@Override
@@ -638,66 +747,61 @@ public class HangoutNetwork extends Service implements Runnable {
 
 	public void mark(String conversation) {
 		markedConversations.add(conversation);
-		String temp = "";
-		conversations = getConversations();
-		for (int i = 0; i < conversations.size(); i++) {
-			temp += conversations.get(i);
-			temp += "-" + getConversationNickAt(i);
-			if (getMarkedConversations().contains(getConversationNickAt(i))) {
-				temp += "-true;";
-			} else {
-				temp += "-false;";
-			}
-		}
-		SharedPreferences app_preferences = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		SharedPreferences.Editor editor = app_preferences.edit();
-		editor.putString("conversations", temp);
-		editor.commit();
+		saveConversations();
 	}
 
 	public void unmark(final String conversation) {
-		if (markedConversations.contains(conversation)) {
-			unmarkLocal(conversation);
+		unmarkLocal(conversation);
+		removeNotification(conversation);
+		new AsyncTask<Void, Void, Void>() {
+			@Override
+			protected Void doInBackground(Void... params) {
 
-			new AsyncTask<Void, Void, Void>() {
-				@Override
-				protected Void doInBackground(Void... params) {
+				String jsonString = "{\"type\":\"onRemoveEvent\",\"msg\":"
+						+ "{\"user\":\"" + nick + "\" , \"password\": \"" + pw
+						+ "\", \"id\": \"" + id + "\", \"conversation\":\""
+						+ conversation + "\"}}";
+				submit(jsonString, BLA_SERVER);
+				return null;
+			}
 
-					String jsonString = "{\"type\":\"onRemoveEvent\", \"msg\":{\"user\":\""
-							+ nick
-							+ "\" , \"password\": \""
-							+ pw
-							+ "\", \"id\": \""
-							+ id
-							+ "\", \"conversation\":\""
-							+ conversation + "\"}}";
-					submit(jsonString, HANGOUT_SERVER);
-					return null;
-				}
-
-			}.execute();
-		}
+		}.execute();
 	}
 
 	private void unmarkLocal(String conversation) {
 		markedConversations.remove(conversation);
-		String temp = "";
-		conversations = getConversations();
+		saveConversations();
+	}
+
+	private void saveConversations() {
+		LinkedList<ConversationViewData> list = new LinkedList<ConversationViewData>();
 		for (int i = 0; i < conversations.size(); i++) {
-			temp += conversations.get(i);
-			temp += "-" + getConversationNickAt(i);
-			if (getMarkedConversations().contains(getConversationNickAt(i))) {
-				temp += "-true;";
-			} else {
-				temp += "-false;";
-			}
+			ConversationViewData temp = new ConversationViewData();
+			temp.name = conversations.get(i);
+			temp.nick = getConversationNickAt(i);
+			temp.marked = getMarkedConversations().contains(temp.nick);
+			temp.lastMessage = getLastMessage(temp.nick);
+			list.add(temp);
 		}
-		SharedPreferences app_preferences = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		SharedPreferences.Editor editor = app_preferences.edit();
-		editor.putString("conversations", temp);
-		editor.commit();
+		Conversations.saveAsConversations(list, this);
+
+	}
+
+	public void refreshConversations() {
+		List<ConversationViewData> list = Conversations
+				.loadAsConversations(this);
+		conversations.clear();
+		conversationNicks.clear();
+		markedConversations.clear();
+		lastMessages.clear();
+		for (ConversationViewData temp : list) {
+			conversations.add(temp.name);
+			conversationNicks.add(temp.nick);
+			if (temp.marked) {
+				markedConversations.add(temp.nick);
+			}
+			lastMessages.put(temp.nick, temp.lastMessage);
+		}
 	}
 
 	public LinkedList<String> getMarkedConversations() {
@@ -712,85 +816,76 @@ public class HangoutNetwork extends Service implements Runnable {
 	static String twoHyphens = "--";
 	static String boundary = "AaB03x87yxdkjnxvi7";
 
+	@SuppressWarnings("deprecation")
 	public void send(final Bitmap bmp, final String conversation) {
-		new Thread() {
-			@SuppressWarnings("deprecation")
-			public void run() {
-				String jsonString = "{\"type\":\"onData\", \"msg\":{\"user\":\""
-						+ nick
-						+ "\" , \"password\": \""
-						+ pw
-						+ "\", \"conversation\":\""
-						+ conversation
-						+ "\", \"type\":\"image\"}}";
-				try {
-					HttpURLConnection conn = null;
-					DataOutputStream dos = null;
-					DataInputStream dis = null;
-					URL url = new URL(HANGOUT_SERVER + "/api.php");
-					// ------------------ CLIENT REQUEST
+		String jsonString = "{\"type\":\"onData\", \"msg\":{\"user\":\"" + nick
+				+ "\" , \"password\": \"" + pw + "\", \"conversation\":\""
+				+ conversation + "\", \"type\":\"image\"}}";
+		try {
+			HttpURLConnection conn = null;
+			DataOutputStream dos = null;
+			DataInputStream dis = null;
+			URL url = new URL(BLA_SERVER + "/api.php");
+			// ------------------ CLIENT REQUEST
 
-					// open a URL connection to the Servlet
-					// Open a HTTP connection to the URL
-					conn = (HttpURLConnection) url.openConnection();
-					// Allow Inputs
-					conn.setDoInput(true);
-					// Allow Outputs
-					conn.setDoOutput(true);
-					// Don't use a cached copy.
-					conn.setUseCaches(false);
-					// Use a post method.
-					conn.setRequestMethod("POST");
-					conn.setRequestProperty("Content-Type",
-							"multipart/form-data;boundary=" + boundary);
+			// open a URL connection to the Servlet
+			// Open a HTTP connection to the URL
+			conn = (HttpURLConnection) url.openConnection();
+			// Allow Inputs
+			conn.setDoInput(true);
+			// Allow Outputs
+			conn.setDoOutput(true);
+			// Don't use a cached copy.
+			conn.setUseCaches(false);
+			// Use a post method.
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Type",
+					"multipart/form-data;boundary=" + boundary);
 
-					dos = new DataOutputStream(conn.getOutputStream());
+			dos = new DataOutputStream(conn.getOutputStream());
 
-					dos.writeBytes(twoHyphens + boundary + lineEnd);
-					dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\"; filename=\"image.png\""
-							+ lineEnd);
-					dos.writeBytes("Content-Type: text/xml" + lineEnd);
-					dos.writeBytes(lineEnd);
-					bmp.compress(CompressFormat.PNG, 100, dos);
-					bmp.recycle();
+			dos.writeBytes(twoHyphens + boundary + lineEnd);
+			dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\"; filename=\"image.png\""
+					+ lineEnd);
+			dos.writeBytes("Content-Type: text/xml" + lineEnd);
+			dos.writeBytes(lineEnd);
+			bmp.compress(CompressFormat.PNG, 100, dos);
+			bmp.recycle();
 
-					dos.writeBytes(lineEnd);
-					dos.writeBytes(twoHyphens + boundary + lineEnd);
-					dos.writeBytes("Content-Disposition: form-data; name=\"msg\""
-							+ lineEnd);
-					dos.writeBytes(lineEnd);
-					dos.writeBytes(jsonString);
+			dos.writeBytes(lineEnd);
+			dos.writeBytes(twoHyphens + boundary + lineEnd);
+			dos.writeBytes("Content-Disposition: form-data; name=\"msg\""
+					+ lineEnd);
+			dos.writeBytes(lineEnd);
+			dos.writeBytes(jsonString);
 
-					// send multipart form data necessary after file data...
-					dos.writeBytes(lineEnd);
-					dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
-					dos.flush();
-					// ------------------ read the SERVER RESPONSE
-					try {
-						dis = new DataInputStream(conn.getInputStream());
-						StringBuilder response = new StringBuilder();
+			// send multipart form data necessary after file data...
+			dos.writeBytes(lineEnd);
+			dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+			dos.flush();
+			// ------------------ read the SERVER RESPONSE
+			try {
+				dis = new DataInputStream(conn.getInputStream());
+				StringBuilder response = new StringBuilder();
 
-						String line;
-						while ((line = dis.readLine()) != null) {
-							response.append(line).append('\n');
-						}
-
-						// String result = response.toString();
-						// Ignored atm.
-					} finally {
-						if (dis != null)
-							dis.close();
-					}
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-				} catch (ProtocolException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
+				String line;
+				while ((line = dis.readLine()) != null) {
+					response.append(line).append('\n');
 				}
 
+				// String result = response.toString();
+				// Ignored atm.
+			} finally {
+				if (dis != null)
+					dis.close();
 			}
-		}.start();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (ProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void send(final Video vid, final String conversation) {
@@ -808,8 +903,8 @@ public class HangoutNetwork extends Service implements Runnable {
 					HttpURLConnection conn = null;
 					DataOutputStream dos = null;
 					DataInputStream dis = null;
-					//FileInputStream fileInputStream = null;
-					URL url = new URL(HANGOUT_SERVER + "/api.php");
+					// FileInputStream fileInputStream = null;
+					URL url = new URL(BLA_SERVER + "/api.php");
 					// ------------------ CLIENT REQUEST
 
 					// open a URL connection to the Servlet
@@ -856,7 +951,7 @@ public class HangoutNetwork extends Service implements Runnable {
 							response.append(line).append('\n');
 						}
 
-						//String result = response.toString();
+						// String result = response.toString();
 						// Ignored atm.
 					} finally {
 						if (dis != null)
@@ -875,6 +970,8 @@ public class HangoutNetwork extends Service implements Runnable {
 
 	private LinkedList<String> reloadFiles = new LinkedList<String>();
 
+	private final HashMap<String, String> lastMessages;
+
 	public void requireFileReload(String preFile) {
 		reloadFiles.add(preFile);
 	}
@@ -885,5 +982,152 @@ public class HangoutNetwork extends Service implements Runnable {
 
 	public void fileReloaded(String preFile) {
 		reloadFiles.remove(preFile);
+	}
+
+	public String getLastMessage(String nick) {
+		if (!lastMessages.containsKey(nick)) {
+			return " ";
+		}
+		String result = lastMessages.get(nick);
+		if (result.startsWith("#image")) {
+			result = "(image)";
+		} else if (result.startsWith("#video")) {
+			result = "(video)";
+		} else if (result.startsWith("#file")) {
+			result = "(file)";
+		} else if (result.startsWith("#hangout")) {
+			result = "(hangout)";
+		}
+		return result;
+	}
+
+	public void setLastMessage(String nick, String message) {
+		lastMessages.put(nick, message);
+		saveConversations();
+	}
+
+	public void detachMessageListener(MessageListener toRemove) {
+		Log.d("HangoutNetwork", "Detached: " + toRemove.toString());
+		listeners.remove(toRemove);
+	}
+
+	public String getNotificationText() {
+		if (notifications.size() > 0) {
+			String result = "";
+			for (int i = 0; i < notifications.size(); i++) {
+				result += notifications.get(i).name + ": "
+						+ notifications.get(i).message + "\n";
+			}
+			return result;
+		} else {
+			return "No news";
+		}
+	}
+
+	private String[] contactNames = null;
+	private String[] contactNicks = null;
+
+	public String[] getContactNames() {
+		if (contactNames == null) {
+			SharedPreferences app_preferences = PreferenceManager
+					.getDefaultSharedPreferences(getApplicationContext());
+
+			String[] splits = app_preferences.getString("contacts", "").split(
+					BlaNetwork.EOL);
+			contactNames = new String[splits.length];
+			contactNicks = new String[splits.length];
+
+			for (int i = 0; i < splits.length; i++) {
+				String[] s = splits[i].split(SEPERATOR);
+				if (s.length >= 2) {
+					contactNames[i] = s[0];
+					contactNicks[i] = s[1];
+				}
+			}
+
+			if (contactNames.length == 0) {
+				updateContacts();
+			} else {
+				new AsyncTask<Void, Void, Void>() {
+					@Override
+					protected Void doInBackground(Void... params) {
+						updateContacts();
+						return null;
+					}
+				}.execute();
+			}
+		} else {
+			new AsyncTask<Void, Void, Void>() {
+				@Override
+				protected Void doInBackground(Void... params) {
+					updateContacts();
+					return null;
+				}
+			}.execute();
+		}
+		return contactNames;
+	}
+
+	private void updateContacts() {
+
+		String jsonString = "{\"type\":\"onGetContacts\", \"msg\":{\"user\":\""
+				+ nick + "\" , \"password\": \"" + pw + "\" }}";
+
+		String result = submit(jsonString, BLA_SERVER);
+
+		if (result.equals("ERROR")) {
+			return;
+		}
+		JSONArray ja;
+		try {
+			ja = new JSONArray(result);
+			contactNames = new String[ja.length()];
+			contactNicks = new String[ja.length()];
+			for (int i = 0; i < ja.length(); i++) {
+				JSONObject jo = ja.getJSONObject(i);
+				contactNames[i] = jo.getString("name");
+				contactNicks[i] = jo.getString("nick");
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return;
+		}
+
+		String temp = "";
+		for (int i = 0; i < contactNames.length; i++) {
+			temp += contactNames[i] + SEPERATOR + contactNicks[i] + EOL;
+		}
+		SharedPreferences app_preferences = PreferenceManager
+				.getDefaultSharedPreferences(getApplicationContext());
+		SharedPreferences.Editor editor = app_preferences.edit();
+		editor.putString("contacts", temp);
+		editor.commit();
+
+	}
+
+	public String[] getContactNicks() {
+		if (contactNicks == null) {
+			getContactNames();
+		}
+		return contactNicks;
+	}
+
+	public static String getUser(Context ctx) {
+		if (nick == null) {
+			SharedPreferences app_preferences = PreferenceManager
+					.getDefaultSharedPreferences(ctx);
+
+			if ((app_preferences.getString("nick", null) == null)) {
+				return "";
+			} else {
+				nick = app_preferences.getString("nick", null);
+			}
+		}
+		return nick;
+	}
+
+	public void openConversation(LinkedList<String> participants, Context that) {
+		// TODO Auto-generated method stub
+
 	}
 }
