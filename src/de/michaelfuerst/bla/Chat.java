@@ -318,7 +318,6 @@ public class Chat extends Activity {
 	}
 
 	private View getImageView(final String path) {
-		LinearLayout parent = (LinearLayout) findViewById(R.id.messages);
 		final AutoBufferingImageView iv = new AutoBufferingImageView(this);
 		String preFile = path.split("/")[path.split("/").length - 1];
 		final String filename = Environment.getExternalStorageDirectory()

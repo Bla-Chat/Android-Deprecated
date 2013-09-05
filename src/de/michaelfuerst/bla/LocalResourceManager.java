@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.PriorityQueue;
 import java.util.Set;
 
 import android.content.Context;

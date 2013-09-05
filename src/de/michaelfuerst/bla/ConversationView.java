@@ -1,6 +1,7 @@
 /**
  * 
  */
+
 package de.michaelfuerst.bla;
 
 import android.content.Context;
@@ -8,12 +9,10 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 /**
@@ -23,12 +22,10 @@ import android.widget.TextView;
 public class ConversationView extends LinearLayout {
 
 	private static final int PROFILE_IMAGE_SIZE = 96;
-	private View parentView;
-
+	
 	public ConversationView(final Conversations parent, ConversationViewData d,
 			View parentView, String user) {
 		super(parent);
-		this.parentView = parentView;
 		final String name = d.name;
 		final String nick = d.nick;
 		createChilds(parent, name, nick, user);
