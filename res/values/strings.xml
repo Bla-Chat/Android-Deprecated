@@ -13,5 +13,8 @@
     <string name="action_addFriend">Add Friend</string>
     <string name="action_addToConversation">+</string>
     <string name="title_activity_chat_creator">New Chat</string>
+    <string name="action_setName">Set Name</string>
+    <string name="action_setProfileImage">Set Profile Image</string>
+    <string name="action_setImage">Set Image</string>
 
 </resources>

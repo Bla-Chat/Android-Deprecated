@@ -1220,4 +1220,178 @@ public class BlaNetwork extends Service implements Runnable {
 		}
 		return nick;
 	}
+
+	/**
+	 * Rename self.
+	 * @param name The new name.
+	 * @return The result of the request.
+	 */
+	public String renameSelf(String name) {
+		if (!isActive()) {
+			throw new NullPointerException("Logindata must be set first.");
+		}
+		synchronized (BlaNetwork.class) {
+			while (!isRunning()) {
+				try {
+					BlaNetwork.class.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		String jsonString = "{\"type\":\"onSetName\", \"msg\":{\"user\":\""
+				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
+				+ "\" , \"name\": \"" + name
+				+ "\"}}";
+		return submit(jsonString, BLA_SERVER);
+	}
+
+	public String setImage(Bitmap bmp, String conversation) {
+		conversation = conversation.replaceAll(",", "-");
+		String jsonString = "{\"type\":\"onSetGroupImage\", \"msg\":{\"user\":\"" + nick
+				+ "\" , \"password\": \"" + pw + "\", \"conversation\":\""
+				+ conversation + "\", \"type\":\"image\"}}";
+		
+		String result = "ERROR";
+		try {
+			HttpURLConnection conn = null;
+			DataOutputStream dos = null;
+			DataInputStream dis = null;
+			URL url = new URL(BLA_SERVER + "/api.php");
+			// ------------------ CLIENT REQUEST
+
+			// open a URL connection to the Servlet
+			// Open a HTTP connection to the URL
+			conn = (HttpURLConnection) url.openConnection();
+			// Allow Inputs
+			conn.setDoInput(true);
+			// Allow Outputs
+			conn.setDoOutput(true);
+			// Don't use a cached copy.
+			conn.setUseCaches(false);
+			// Use a post method.
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Type",
+					"multipart/form-data;boundary=" + boundary);
+
+			dos = new DataOutputStream(conn.getOutputStream());
+
+			dos.writeBytes(twoHyphens + boundary + lineEnd);
+			dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\"; filename=\"image.png\""
+					+ lineEnd);
+			dos.writeBytes("Content-Type: text/xml" + lineEnd);
+			dos.writeBytes(lineEnd);
+			bmp.compress(CompressFormat.PNG, 100, dos);
+			bmp.recycle();
+
+			dos.writeBytes(lineEnd);
+			dos.writeBytes(twoHyphens + boundary + lineEnd);
+			dos.writeBytes("Content-Disposition: form-data; name=\"msg\""
+					+ lineEnd);
+			dos.writeBytes(lineEnd);
+			dos.writeBytes(jsonString);
+
+			// send multipart form data necessary after file data...
+			dos.writeBytes(lineEnd);
+			dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+			dos.flush();
+			// ------------------ read the SERVER RESPONSE
+			try {
+				dis = new DataInputStream(conn.getInputStream());
+				StringBuilder response = new StringBuilder();
+
+				String line;
+				while ((line = dis.readLine()) != null) {
+					response.append(line).append('\n');
+				}
+
+				result = response.toString();
+				// Ignored atm.
+			} finally {
+				if (dis != null)
+					dis.close();
+			}
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (ProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	public String setImage(Bitmap bmp) {
+		String jsonString = "{\"type\":\"onSetProfileImage\", \"msg\":{\"user\":\"" + nick
+				+ "\" , \"password\": \"" + pw + "\", \"type\":\"image\"}}";
+		
+		String result = "ERROR";
+		try {
+			HttpURLConnection conn = null;
+			DataOutputStream dos = null;
+			DataInputStream dis = null;
+			URL url = new URL(BLA_SERVER + "/api.php");
+			// ------------------ CLIENT REQUEST
+
+			// open a URL connection to the Servlet
+			// Open a HTTP connection to the URL
+			conn = (HttpURLConnection) url.openConnection();
+			// Allow Inputs
+			conn.setDoInput(true);
+			// Allow Outputs
+			conn.setDoOutput(true);
+			// Don't use a cached copy.
+			conn.setUseCaches(false);
+			// Use a post method.
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Type",
+					"multipart/form-data;boundary=" + boundary);
+
+			dos = new DataOutputStream(conn.getOutputStream());
+
+			dos.writeBytes(twoHyphens + boundary + lineEnd);
+			dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\"; filename=\"image.png\""
+					+ lineEnd);
+			dos.writeBytes("Content-Type: text/xml" + lineEnd);
+			dos.writeBytes(lineEnd);
+			bmp.compress(CompressFormat.PNG, 100, dos);
+			bmp.recycle();
+
+			dos.writeBytes(lineEnd);
+			dos.writeBytes(twoHyphens + boundary + lineEnd);
+			dos.writeBytes("Content-Disposition: form-data; name=\"msg\""
+					+ lineEnd);
+			dos.writeBytes(lineEnd);
+			dos.writeBytes(jsonString);
+
+			// send multipart form data necessary after file data...
+			dos.writeBytes(lineEnd);
+			dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+			dos.flush();
+			// ------------------ read the SERVER RESPONSE
+			try {
+				dis = new DataInputStream(conn.getInputStream());
+				StringBuilder response = new StringBuilder();
+
+				String line;
+				while ((line = dis.readLine()) != null) {
+					response.append(line).append('\n');
+				}
+
+				result = response.toString();
+				// Ignored atm.
+			} finally {
+				if (dis != null)
+					dis.close();
+			}
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (ProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Log.d("ERROR", result);
+		return result;
+	}
 }

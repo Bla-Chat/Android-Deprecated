@@ -15,4 +15,14 @@
         android:showAsAction="never"
         android:title="@string/action_addFriend">
     </item>
+    <item
+        android:id="@+id/action_setName"
+        android:showAsAction="never"
+        android:title="@string/action_setName">
+    </item>
+    <item
+        android:id="@+id/action_setProfileImage"
+        android:showAsAction="never"
+        android:title="@string/action_setProfileImage">
+    </item>
 </menu>

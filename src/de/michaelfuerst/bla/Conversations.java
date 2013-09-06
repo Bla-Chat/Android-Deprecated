@@ -1,13 +1,18 @@
 package de.michaelfuerst.bla;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
 import de.michaelfuerst.hangout.R;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
+import android.provider.MediaStore.Video;
 import android.support.v4.app.NavUtils;
 import android.support.v4.view.MenuCompat;
 import android.app.Activity;
@@ -16,6 +21,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,10 +34,13 @@ import android.widget.Toast;
 
 public class Conversations extends Activity implements MessageListener {
 
+	private static final int IMAGE_RESULT = 0;
 	private BlaNetwork networkAdapter = null;
 	boolean waiting = false;
 	private boolean isAlive = false;
 	private final List<ConversationViewData> conversationData = new LinkedList<ConversationViewData>();
+	private static String tmp_image = Environment.getExternalStorageDirectory()
+			+ "/Pictures/BlaChat/tmp.png";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -132,7 +143,8 @@ public class Conversations extends Activity implements MessageListener {
 							final String value = input.getText().toString();
 							if (networkAdapter != null) {
 								new AsyncTask<Void, Void, Void>() {
-									@Override public Void doInBackground(Void... params) {
+									@Override
+									public Void doInBackground(Void... params) {
 										networkAdapter.friend(value);
 										return null;
 									}
@@ -154,11 +166,144 @@ public class Conversations extends Activity implements MessageListener {
 
 			alert.show();
 			return true;
+		case R.id.action_setName:
+			AlertDialog.Builder alert2 = new AlertDialog.Builder(this);
+
+			alert2.setTitle("Change Name");
+			alert2.setMessage("Enter your new name.");
+
+			// Set an EditText view to get user input
+			final EditText input2 = new EditText(this);
+			alert2.setView(input2);
+
+			alert2.setPositiveButton("Ok",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							final String value = input2.getText().toString();
+							if (networkAdapter != null) {
+								new AsyncTask<Void, Void, Void>() {
+									@Override
+									public Void doInBackground(Void... params) {
+										networkAdapter.renameSelf(value);
+										return null;
+									}
+								}.execute();
+								Toast.makeText(parent, "Rename " + value,
+										Toast.LENGTH_SHORT).show();
+							}
+						}
+					});
+
+			alert2.setNegativeButton("Cancel",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							Toast.makeText(parent, "Canceled",
+									Toast.LENGTH_SHORT).show();
+						}
+					});
+
+			alert2.show();
+			return true;
+		case R.id.action_setProfileImage:
+			Intent pickIntent = new Intent();
+			pickIntent.setType("image/*");
+			pickIntent.setAction(Intent.ACTION_GET_CONTENT);
+
+			Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+			takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+					Uri.fromFile(new File(tmp_image)));
+
+			String pickTitle = "Select or take a new Picture"; // Or get from
+																// strings.xml
+			Intent chooserIntent = Intent.createChooser(pickIntent, pickTitle);
+			chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
+					new Intent[] { takePhotoIntent });
+
+			startActivityForResult(chooserIntent, IMAGE_RESULT);
+			return true;
 		case R.id.action_newConversation:
 			startActivity(new Intent(this, ChatCreator.class));
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == IMAGE_RESULT) {
+			if (resultCode == Activity.RESULT_OK) {
+				if (data != null && data.getData() != null) {
+					final Conversations that = this;
+					Uri _uri = data.getData();
+
+					// User had pick an image.
+					Cursor cursor = getContentResolver()
+							.query(_uri,
+									new String[] { android.provider.MediaStore.Images.ImageColumns.DATA },
+									null, null, null);
+					cursor.moveToFirst();
+
+					// Link to the image
+					final String imageFilePath = cursor.getString(0);
+					cursor.close();
+
+					Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
+							.show();
+					Log.d("Chat", "Starting image upload");
+					new AsyncTask<Void, Void, Void>() {
+						@Override
+						protected Void doInBackground(Void... params) {
+							BitmapFactory.Options options = new BitmapFactory.Options();
+							options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+							options.inSampleSize = 2;
+							Bitmap bmp = BitmapFactory.decodeFile(
+									imageFilePath, options);
+							if (bmp != null) {
+								networkAdapter.setImage(bmp);
+							}
+							return null;
+						}
+
+						@Override
+						protected void onPostExecute(Void v) {
+							Toast.makeText(that, "Uploaded image",
+									Toast.LENGTH_LONG).show();
+							Log.d("Chat", "Done image upload");
+						}
+					}.execute();
+				} else {
+					final String imageFilePath = tmp_image;
+					Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
+							.show();
+					final Conversations that = this;
+					Log.d("Chat", "Starting image upload");
+					new AsyncTask<Void, Void, Void>() {
+						@Override
+						protected Void doInBackground(Void... params) {
+							BitmapFactory.Options options = new BitmapFactory.Options();
+							options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+							options.inSampleSize = 2;
+							Bitmap bmp = BitmapFactory.decodeFile(
+									imageFilePath, options);
+							if (bmp != null) {
+								networkAdapter.setImage(bmp);
+							}
+							return null;
+						}
+
+						@Override
+						protected void onPostExecute(Void v) {
+							Toast.makeText(that, "Uploaded image",
+									Toast.LENGTH_LONG).show();
+							Log.d("Chat", "Done image upload");
+						}
+					}.execute();
+				}
+			}
+		}
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 	@Override

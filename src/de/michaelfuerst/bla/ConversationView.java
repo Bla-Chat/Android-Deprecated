@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -78,6 +79,10 @@ public class ConversationView extends LinearLayout {
 				localNick = s[1];
 			}
 		}
+		if (localNick.equals(nick)) {
+			localNick = nick.replaceAll(",", "-");
+		}
+		Log.d("Loader", localNick);
 		RelativeLayout v = new RelativeLayout(parent);
 		v.setMinimumHeight(96);
 		v.setMinimumWidth(96);

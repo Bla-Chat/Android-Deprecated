@@ -64,6 +64,7 @@ public class Chat extends Activity {
 	};
 	private ChatMessage[] chatList;
 	private boolean fotoReturn;
+	private boolean isSetImage = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -401,6 +402,26 @@ public class Chat extends Activity {
 
 			startActivityForResult(chooserIntent, IMAGE_RESULT);
 			return true;
+		case R.id.action_setImage:
+			isSetImage = true;
+			Intent pickIntent2 = new Intent();
+			pickIntent2.setType("image/*");
+			pickIntent2.setAction(Intent.ACTION_GET_CONTENT);
+
+			Intent takePhotoIntent2 = new Intent(
+					MediaStore.ACTION_IMAGE_CAPTURE);
+			takePhotoIntent2.putExtra(MediaStore.EXTRA_OUTPUT,
+					Uri.fromFile(new File(tmp_image)));
+
+			String pickTitle2 = "Select or take a new Picture"; // Or get from
+																// strings.xml
+			Intent chooserIntent2 = Intent.createChooser(pickIntent2,
+					pickTitle2);
+			chooserIntent2.putExtra(Intent.EXTRA_INITIAL_INTENTS,
+					new Intent[] { takePhotoIntent2 });
+
+			startActivityForResult(chooserIntent2, IMAGE_RESULT);
+			return true;
 		case R.id.action_addVideo:
 			Toast.makeText(this, "Upcoming feature", Toast.LENGTH_SHORT).show();
 			// startActivityForResult(new
@@ -425,7 +446,8 @@ public class Chat extends Activity {
 							networkAdapter = BlaNetwork.getInstance();
 							if (networkAdapter != null) {
 								new AsyncTask<Void, Void, Void>() {
-									@Override public Void doInBackground(Void... params) {
+									@Override
+									public Void doInBackground(Void... params) {
 										networkAdapter.rename(nick, value);
 										return null;
 									}
@@ -477,7 +499,9 @@ public class Chat extends Activity {
 					Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
 							.show();
 					Log.d("Chat", "Starting image upload");
-					insertMessage("#image " + imageFilePath);
+					if (!isSetImage) {
+						insertMessage("#image " + imageFilePath);
+					}
 					new AsyncTask<Void, Void, Void>() {
 						@Override
 						protected Void doInBackground(Void... params) {
@@ -487,7 +511,11 @@ public class Chat extends Activity {
 							Bitmap bmp = BitmapFactory.decodeFile(
 									imageFilePath, options);
 							if (bmp != null) {
-								networkAdapter.send(bmp, nick);
+								if (isSetImage) {
+									networkAdapter.setImage(bmp, nick);
+								} else {
+									networkAdapter.send(bmp, nick);
+								}
 							}
 							fotoReturn = false;
 							return null;
@@ -506,7 +534,9 @@ public class Chat extends Activity {
 							.show();
 					final Chat that = this;
 					Log.d("Chat", "Starting image upload");
-					insertMessage("#image " + imageFilePath);
+					if (!isSetImage) {
+						insertMessage("#image " + imageFilePath);
+					}
 					new AsyncTask<Void, Void, Void>() {
 						@Override
 						protected Void doInBackground(Void... params) {
@@ -516,7 +546,11 @@ public class Chat extends Activity {
 							Bitmap bmp = BitmapFactory.decodeFile(
 									imageFilePath, options);
 							if (bmp != null) {
-								networkAdapter.send(bmp, nick);
+								if (isSetImage) {
+									networkAdapter.setImage(bmp, nick);
+								} else {
+									networkAdapter.send(bmp, nick);
+								}
 							}
 							fotoReturn = false;
 							return null;
