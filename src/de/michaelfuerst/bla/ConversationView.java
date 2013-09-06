@@ -82,7 +82,6 @@ public class ConversationView extends LinearLayout {
 		if (localNick.equals(nick)) {
 			localNick = nick.replaceAll(",", "-");
 		}
-		Log.d("Loader", localNick);
 		RelativeLayout v = new RelativeLayout(parent);
 		v.setMinimumHeight(96);
 		v.setMinimumWidth(96);
