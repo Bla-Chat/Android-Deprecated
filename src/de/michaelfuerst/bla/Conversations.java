@@ -115,8 +115,8 @@ public class Conversations extends Activity implements MessageListener {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		final Conversations parent = this;
-		switch (item.getItemId()) {
-		case android.R.id.home:
+		int itemId = item.getItemId();
+		if (itemId == android.R.id.home) {
 			// This ID represents the Home or Up button. In the case of this
 			// activity, the Up button is shown. Use NavUtils to allow users
 			// to navigate up one level in the application structure. For
@@ -126,16 +126,13 @@ public class Conversations extends Activity implements MessageListener {
 			//
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
-		case R.id.action_addFriend:
+		} else if (itemId == R.id.action_addFriend) {
 			AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
 			alert.setTitle("Add Friend");
 			alert.setMessage("Enter the nickname of your friend");
-
 			// Set an EditText view to get user input
 			final EditText input = new EditText(this);
 			alert.setView(input);
-
 			alert.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog,
@@ -154,7 +151,6 @@ public class Conversations extends Activity implements MessageListener {
 							}
 						}
 					});
-
 			alert.setNegativeButton("Cancel",
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog,
@@ -163,19 +159,15 @@ public class Conversations extends Activity implements MessageListener {
 									Toast.LENGTH_SHORT).show();
 						}
 					});
-
 			alert.show();
 			return true;
-		case R.id.action_setName:
+		} else if (itemId == R.id.action_setName) {
 			AlertDialog.Builder alert2 = new AlertDialog.Builder(this);
-
 			alert2.setTitle("Change Name");
 			alert2.setMessage("Enter your new name.");
-
 			// Set an EditText view to get user input
 			final EditText input2 = new EditText(this);
 			alert2.setView(input2);
-
 			alert2.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog,
@@ -194,7 +186,6 @@ public class Conversations extends Activity implements MessageListener {
 							}
 						}
 					});
-
 			alert2.setNegativeButton("Cancel",
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog,
@@ -203,27 +194,23 @@ public class Conversations extends Activity implements MessageListener {
 									Toast.LENGTH_SHORT).show();
 						}
 					});
-
 			alert2.show();
 			return true;
-		case R.id.action_setProfileImage:
+		} else if (itemId == R.id.action_setProfileImage) {
 			Intent pickIntent = new Intent();
 			pickIntent.setType("image/*");
 			pickIntent.setAction(Intent.ACTION_GET_CONTENT);
-
 			Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 			takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
 					Uri.fromFile(new File(tmp_image)));
-
 			String pickTitle = "Select or take a new Picture"; // Or get from
-																// strings.xml
+			// strings.xml
 			Intent chooserIntent = Intent.createChooser(pickIntent, pickTitle);
 			chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
 					new Intent[] { takePhotoIntent });
-
 			startActivityForResult(chooserIntent, IMAGE_RESULT);
 			return true;
-		case R.id.action_newConversation:
+		} else if (itemId == R.id.action_newConversation) {
 			startActivity(new Intent(this, ChatCreator.class));
 			return true;
 		}

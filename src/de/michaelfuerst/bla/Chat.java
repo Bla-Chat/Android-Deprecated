@@ -381,63 +381,54 @@ public class Chat extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		final Chat parent = this;
-		switch (item.getItemId()) {
-		case android.R.id.home:
+		int itemId = item.getItemId();
+		if (itemId == android.R.id.home) {
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
-		case R.id.action_addImage:
+		} else if (itemId == R.id.action_addImage) {
 			Intent pickIntent = new Intent();
 			pickIntent.setType("image/*");
 			pickIntent.setAction(Intent.ACTION_GET_CONTENT);
-
 			Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 			takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
 					Uri.fromFile(new File(tmp_image)));
-
 			String pickTitle = "Select or take a new Picture"; // Or get from
-																// strings.xml
+			// strings.xml
 			Intent chooserIntent = Intent.createChooser(pickIntent, pickTitle);
 			chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
 					new Intent[] { takePhotoIntent });
-
 			startActivityForResult(chooserIntent, IMAGE_RESULT);
 			return true;
-		case R.id.action_setImage:
+		} else if (itemId == R.id.action_setImage) {
 			isSetImage = true;
 			Intent pickIntent2 = new Intent();
 			pickIntent2.setType("image/*");
 			pickIntent2.setAction(Intent.ACTION_GET_CONTENT);
-
 			Intent takePhotoIntent2 = new Intent(
 					MediaStore.ACTION_IMAGE_CAPTURE);
 			takePhotoIntent2.putExtra(MediaStore.EXTRA_OUTPUT,
 					Uri.fromFile(new File(tmp_image)));
-
 			String pickTitle2 = "Select or take a new Picture"; // Or get from
-																// strings.xml
+			// strings.xml
 			Intent chooserIntent2 = Intent.createChooser(pickIntent2,
 					pickTitle2);
 			chooserIntent2.putExtra(Intent.EXTRA_INITIAL_INTENTS,
 					new Intent[] { takePhotoIntent2 });
-
 			startActivityForResult(chooserIntent2, IMAGE_RESULT);
 			return true;
-		case R.id.action_addVideo:
+		} else if (itemId == R.id.action_addVideo) {
 			Toast.makeText(this, "Upcoming feature", Toast.LENGTH_SHORT).show();
 			// startActivityForResult(new
 			// Intent(MediaStore.ACTION_VIDEO_CAPTURE),
 			// VIDEO_RESULT);
 			return true;
-		case R.id.action_rename:
+		} else if (itemId == R.id.action_rename) {
 			AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
 			alert.setTitle("Rename Conversation");
 			alert.setMessage("The new name for your conversation");
-
 			// Set an EditText view to get user input
 			final EditText input = new EditText(this);
 			alert.setView(input);
-
 			alert.setPositiveButton("Ok",
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog,
@@ -460,7 +451,6 @@ public class Chat extends Activity {
 							}
 						}
 					});
-
 			alert.setNegativeButton("Cancel",
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog,
@@ -469,7 +459,6 @@ public class Chat extends Activity {
 									Toast.LENGTH_SHORT).show();
 						}
 					});
-
 			alert.show();
 			return true;
 		}
