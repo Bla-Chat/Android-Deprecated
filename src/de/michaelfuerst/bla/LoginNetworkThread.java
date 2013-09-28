@@ -34,7 +34,14 @@ public class LoginNetworkThread extends Thread {
 			activity.startActivity(new Intent(activity.getApplicationContext(),
 					Conversations.class));
 		} else {
-			BlaNetwork.getInstance().tryLogin(activity);
+			while(!BlaNetwork.getInstance().tryLogin(activity)) {
+				/*try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					return;
+				}*/
+				return;
+			}
 		}
 	}
 }

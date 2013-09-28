@@ -45,6 +45,7 @@ public class Conversations extends Activity implements MessageListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.d("Created", "Conversations created!");
 		final Conversations that = this;
 		conversationData.clear();
 		conversationData.addAll(loadAsConversations(this));
@@ -53,9 +54,10 @@ public class Conversations extends Activity implements MessageListener {
 		networkAdapter = BlaNetwork.getInstance();
 		if (networkAdapter == null) {
 			startService(new Intent(this, BlaNetwork.class));
-			new AsyncTask<Integer, Integer, Integer>() {
+			
+			new Thread() {
 				@Override
-				protected Integer doInBackground(Integer... params) {
+				public void run() {
 					synchronized (BlaNetwork.class) {
 						while (BlaNetwork.getInstance() == null) {
 							networkAdapter = null;
@@ -81,15 +83,9 @@ public class Conversations extends Activity implements MessageListener {
 
 					networkAdapter.setActiveConversation(null);
 					networkAdapter.updateConversations();
-					return null;
-				}
-
-				@Override
-				public void onPostExecute(Integer v) {
 					networkAdapter.attachMessageListener(that);
-					updateData();
 				}
-			}.execute();
+			}.start();
 		} else {
 			if (!networkAdapter.isRunning()) {
 				LoginNetworkThread t = new LoginNetworkThread(this);
@@ -306,6 +302,7 @@ public class Conversations extends Activity implements MessageListener {
 
 	@Override
 	protected void onResume() {
+		Log.d("Resume", "conversations");
 		isAlive = true;
 		updateData();
 		if (networkAdapter != null) {
@@ -318,20 +315,22 @@ public class Conversations extends Activity implements MessageListener {
 
 	public void updateData() {
 		if (isAlive) {
+			Log.d("StartUpdate", "conversations");
 			final Conversations that = this;
 			new AsyncTask<Void, Void, LinearLayout>() {
 				@Override
 				protected LinearLayout doInBackground(Void... params) {
+					Log.d("Update", "Updating conversation view.");
 					conversationData.clear();
 					conversationData.addAll(loadAsConversations(that));
 					LinearLayout ll = new LinearLayout(that);
 					ll.setOrientation(LinearLayout.VERTICAL);
-					ScrollView scrollView = (ScrollView) findViewById(R.id.ScrollView1);
 					for (int i = 0; i < conversationData.size(); i++) {
 						ll.addView(new ConversationView(that, conversationData
-								.get(i), scrollView, BlaNetwork.getUser(that)));
+								.get(i), BlaNetwork.getUser(that)));
 						ll.addView(new Delimiter(that));
 					}
+					Log.d("Update2", "Updating conversation view.");
 					return ll;
 				}
 
@@ -339,8 +338,10 @@ public class Conversations extends Activity implements MessageListener {
 					ScrollView scrollView = (ScrollView) findViewById(R.id.ScrollView1);
 					scrollView.removeAllViews();
 					scrollView.addView(ll);
+					Log.d("Update3", "Updating conversation view.");
 				}
 			}.execute();
+			Log.d("UpdateF", "Updating invoked.");
 		}
 	}
 
@@ -356,6 +357,7 @@ public class Conversations extends Activity implements MessageListener {
 
 	public static void saveAsConversations(
 			List<ConversationViewData> conversations, Context ctx) {
+		Log.d("ConversationSave", "size:"+conversations.size());
 		String temp = "";
 		for (int i = 0; i < conversations.size(); i++) {
 			ConversationViewData current = conversations.get(i);
@@ -378,6 +380,7 @@ public class Conversations extends Activity implements MessageListener {
 	}
 
 	public static List<ConversationViewData> loadAsConversations(Context ctx) {
+		Log.d("Load", "Load conversations");
 		List<ConversationViewData> result = new LinkedList<ConversationViewData>();
 		SharedPreferences app_preferences = null;
 		try {

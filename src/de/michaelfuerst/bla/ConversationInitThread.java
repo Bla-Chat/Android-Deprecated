@@ -19,7 +19,9 @@ public class ConversationInitThread extends AsyncTask<Object, Integer, Void> {
 	@Override
 	protected Void doInBackground(Object... params) {
 		BlaNetwork networkAdapter = BlaNetwork.getInstance();
-		networkAdapter.updateConversations();
+		if (networkAdapter != null && networkAdapter.isOnline()) {
+			networkAdapter.updateConversations();
+		}
 		return null;
 	}
 

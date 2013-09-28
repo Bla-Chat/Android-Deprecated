@@ -110,28 +110,23 @@ public class Chat extends Activity {
 		/*
 		 * if (fotoReturn) { return; }
 		 */
-		new AsyncTask<Void, Void, Void>() {
+		new Thread() {
 			@Override
-			protected Void doInBackground(Void... params) {
+			public void run() {
 				if (!networkAdapter.isRunning()) {
 					startService(new Intent(that, BlaNetwork.class));
 					LoginNetworkThread t = new LoginNetworkThread(that);
 					t.start();
 				}
-
-				chatList = loadChatAs(that, nick);
-				return null;
-			}
-
-			@Override
-			public void onPostExecute(Void a) {
-				drawHistory(chatList);
 				networkAdapter.attachMessageListener(ml);
 				networkAdapter.setActiveConversation(nick);
-				updateHistory();
+				networkAdapter.requestResume();
 			}
+		}.start();
 
-		}.execute();
+		chatList = loadChatAs(that, nick);
+		drawHistory(chatList);
+		updateHistory();
 	}
 
 	public static ChatMessage[] loadChatAs(Context ctx, String nick) {
@@ -353,7 +348,6 @@ public class Chat extends Activity {
 
 	protected void updateHistory() {
 		new ChatHistoryThread().execute(this, nick);
-		networkAdapter.requestResume();
 	}
 
 	/**
@@ -589,26 +583,24 @@ public class Chat extends Activity {
 	protected void onResume() {
 		isAlive = true;
 		initializeAsync();
-		new AsyncTask<Void, Void, Void>() {
+		new Thread() {
 
 			@Override
-			protected Void doInBackground(Void... params) {
+			public void run() {
 				synchronized (BlaNetwork.class) {
 					while (networkAdapter == null) {
 						try {
 							BlaNetwork.class.wait();
 						} catch (InterruptedException e) {
-							return null;
+							return;
 						}
 						networkAdapter = BlaNetwork.getInstance();
 					}
 				}
 				networkAdapter.requestResume();
 				networkAdapter.unmark(nick);
-				return null;
 			}
-
-		}.execute();
+		}.start();
 		super.onResume();
 	}
 

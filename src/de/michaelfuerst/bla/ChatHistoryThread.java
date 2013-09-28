@@ -19,9 +19,11 @@ public class ChatHistoryThread extends
 	protected ChatMessage[] doInBackground(Object... arg) {
 		parent = (Chat) arg[0];
 		String conversationName = (String) arg[1];
-
-		ChatMessage[] result = BlaNetwork.getInstance().getChat(
-				conversationName);
+		ChatMessage[] result = null;
+		if (BlaNetwork.getInstance() != null
+				&& BlaNetwork.getInstance().isOnline()) {
+			result = BlaNetwork.getInstance().getChat(conversationName);
+		}
 		return result;
 	}
 
@@ -33,7 +35,6 @@ public class ChatHistoryThread extends
 	@Override
 	protected void onPostExecute(ChatMessage[] result) {
 		if (result != null) {
-
 			Log.d("ChatHistoryThread", "Updating history");
 			parent.drawHistory(result);
 		}

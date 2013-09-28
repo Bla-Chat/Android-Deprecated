@@ -60,7 +60,6 @@ public class AutoBufferingImageView extends ImageView {
 						Log.d("ImageLoading", "Loading: " + path);
 						loading = true;
 						new AsyncTask<Void, Void, Drawable>() {
-
 							@Override
 							protected Drawable doInBackground(Void... params) {
 								return LocalResourceManager.getDrawable(ctx,

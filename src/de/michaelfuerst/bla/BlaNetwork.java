@@ -247,6 +247,7 @@ public class BlaNetwork extends Service implements Runnable {
 			status = 120;
 		}
 		setLastMessage(conversation, text);
+		Chat.saveChatAs(this, conversation, getChat(conversation));
 		for (MessageListener l : listeners) {
 			l.onMessageReceived(trigger, conversation);
 		}
@@ -296,7 +297,7 @@ public class BlaNetwork extends Service implements Runnable {
 		}
 		if ((message == null || message.equals("")) && !offline) {
 			offline = true;
-			Log.d("Connection", "no internet connection");
+			Log.d("ConnectionError", jsonString);
 			requestPause();
 		} else if (offline) {
 			offline = false;
@@ -449,7 +450,13 @@ public class BlaNetwork extends Service implements Runnable {
 		return submit(jsonString, BLA_SERVER);
 	}
 
-	public void tryLogin(Context parent) {
+	/** Tries a login procedure. When the caller does not need to do anything, true is returned.
+	 * When false is returned you should call this method again after some time.
+	 * 
+	 * @param parent
+	 * @return
+	 */
+	public boolean tryLogin(Context parent) {
 		SharedPreferences app_preferences = PreferenceManager
 				.getDefaultSharedPreferences(parent);
 
@@ -461,22 +468,25 @@ public class BlaNetwork extends Service implements Runnable {
 						Login.class);
 				parent.startActivity(intent);
 			}
+			return true;
 		} else {
 			nick = app_preferences.getString("nick", null);
 			pw = app_preferences.getString("pw", null);
 			id = getNetworkId();
 			// id = null;
 			if ((id == null || id.equals("REJECTED") || id.equals(""))) {
-				if ((parent != this) && (parent != null)) {
+				/*if ((parent != this) && (parent != null)) {
 					Intent intent = new Intent(parent.getApplicationContext(),
 							Login.class);
 					parent.startActivity(intent);
-				}
+				}*/
+				return false;
 			} else {
 				synchronized (BlaNetwork.class) {
 					isReady = true;
 					BlaNetwork.class.notifyAll();
 				}
+				return true;
 			}
 		}
 	}
@@ -637,6 +647,10 @@ public class BlaNetwork extends Service implements Runnable {
 	 */
 	public boolean isRunning() {
 		return isRunning;
+	}
+	
+	public boolean isOnline() {
+		return !offline;
 	}
 
 	public void requestPause() {
@@ -848,19 +862,18 @@ public class BlaNetwork extends Service implements Runnable {
 	public void unmark(final String conversation) {
 		unmarkLocal(conversation);
 		removeNotification(conversation);
-		new AsyncTask<Void, Void, Void>() {
+		new Thread() {
 			@Override
-			protected Void doInBackground(Void... params) {
+			public void run() {
 
 				String jsonString = "{\"type\":\"onRemoveEvent\",\"msg\":"
 						+ "{\"user\":\"" + nick + "\" , \"password\": \"" + pw
 						+ "\", \"id\": \"" + id + "\", \"conversation\":\""
 						+ conversation + "\"}}";
 				submit(jsonString, BLA_SERVER);
-				return null;
 			}
 
-		}.execute();
+		}.start();
 	}
 
 	private void unmarkLocal(String conversation) {
@@ -897,6 +910,7 @@ public class BlaNetwork extends Service implements Runnable {
 			}
 			lastMessages.put(temp.nick, temp.lastMessage);
 		}
+		Conversations.saveAsConversations(list, this);
 	}
 
 	public LinkedList<String> getMarkedConversations() {
@@ -1143,22 +1157,20 @@ public class BlaNetwork extends Service implements Runnable {
 			if (contactNames.length == 0) {
 				updateContacts();
 			} else {
-				new AsyncTask<Void, Void, Void>() {
+				new Thread() {
 					@Override
-					protected Void doInBackground(Void... params) {
+					public void run() {
 						updateContacts();
-						return null;
 					}
-				}.execute();
+				}.start();
 			}
 		} else {
-			new AsyncTask<Void, Void, Void>() {
+			new Thread() {
 				@Override
-				protected Void doInBackground(Void... params) {
+				public void run() {
 					updateContacts();
-					return null;
 				}
-			}.execute();
+			}.start();
 		}
 		return contactNames;
 	}

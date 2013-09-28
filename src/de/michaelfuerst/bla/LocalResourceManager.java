@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Set;
 
 import android.content.Context;
@@ -24,6 +25,7 @@ public class LocalResourceManager {
 	private static HashMap<String, Drawable>[] map = new HashMap[2];
 	@SuppressWarnings("unchecked")
 	private static HashMap<String, Integer>[] usages = new HashMap[2];
+	private static LinkedList<String> fetchQueue = new LinkedList<String>();
 	public static int maxPriority = 10;
 
 	public static void setPriority(String key, int value, int i) {
@@ -62,7 +64,7 @@ public class LocalResourceManager {
 	}
 
 	@SuppressWarnings("deprecation")
-	public static Drawable getDrawable(Context ctx, String path,
+	public static Drawable getDrawable(Context ctx, final String path,
 			double maxSize, int i) {
 		Resources r = ctx.getResources();
 		double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
@@ -75,28 +77,44 @@ public class LocalResourceManager {
 		if (!map[i].containsKey(path)
 				|| ((BitmapDrawable) map[i].get(path)).getBitmap().isRecycled()) {
 			String preFile = path.split("/")[path.split("/").length - 1];
-			String filename = Environment.getExternalStorageDirectory()
+			final String filename = Environment.getExternalStorageDirectory()
 					+ "/Pictures/BlaChat/" + preFile.split("\\.")[0] + ".png";
-			try {
-				File sysPath = new File(
-						Environment.getExternalStorageDirectory()
-								+ "/Pictures/BlaChat");
-				if (!sysPath.exists()) {
-					sysPath.mkdirs();
+
+			File sysPath = new File(Environment.getExternalStorageDirectory()
+					+ "/Pictures/BlaChat");
+			if (!sysPath.exists()) {
+				sysPath.mkdirs();
+			}
+			if (!new File(filename).exists()) {
+				if (BlaNetwork.getInstance() == null
+						|| !BlaNetwork.getInstance().isOnline()) {
+					return null;
+				} else {
+					if (fetchQueue.contains(path)) {
+						return null;
+					}
+					fetchQueue.add(path);
+					new Thread() {
+						@Override
+						public void run() {
+							try {
+								URL url = new URL(path);
+								File file = new File(filename);
+								Bitmap bitmap = BitmapFactory.decodeStream(url
+										.openStream());
+								bitmap.compress(CompressFormat.PNG, 100,
+										new FileOutputStream(file));
+								bitmap.recycle();
+								fetchQueue.remove(path);
+							} catch (MalformedURLException e) {
+								return;
+							} catch (IOException e) {
+								return;
+							}
+						}
+					}.start();
+					return null;
 				}
-				if (!new File(filename).exists()) {
-					URL url = new URL(path);
-					File file = new File(filename);
-					Bitmap bitmap = BitmapFactory
-							.decodeStream(url.openStream());
-					bitmap.compress(CompressFormat.PNG, 100,
-							new FileOutputStream(file));
-					bitmap.recycle();
-				}
-			} catch (MalformedURLException e) {
-				return null;
-			} catch (IOException e) {
-				return null;
 			}
 
 			BitmapFactory.Options bmpFac = new BitmapFactory.Options();

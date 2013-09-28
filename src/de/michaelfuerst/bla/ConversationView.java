@@ -24,8 +24,7 @@ public class ConversationView extends LinearLayout {
 
 	private static final int PROFILE_IMAGE_SIZE = 96;
 	
-	public ConversationView(final Conversations parent, ConversationViewData d,
-			View parentView, String user) {
+	public ConversationView(final Conversations parent, ConversationViewData d, String user) {
 		super(parent);
 		final String name = d.name;
 		final String nick = d.nick;

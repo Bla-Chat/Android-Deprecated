@@ -53,12 +53,12 @@ public class ChatCreator extends Activity {
 					}
 				}
 				participants.add(BlaNetwork.getUser(that));
-				new AsyncTask<Void, Void, Void>() {
-					@Override public Void doInBackground(Void... params) {
+				new Thread() {
+					@Override
+					public void run() {
 						BlaNetwork.getInstance().open(participants);
-						return null;
 					}
-				}.execute();
+				}.start();
 				NavUtils.navigateUpFromSameTask(that);
 			}
 		});
