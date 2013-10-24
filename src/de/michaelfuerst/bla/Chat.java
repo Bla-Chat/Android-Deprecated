@@ -17,9 +17,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -50,6 +52,7 @@ public class Chat extends Activity {
 	private static final int VIDEO_RESULT = 0;
 	private static final int IMAGE_RESULT = 0;
 	private static final int IMAGE_MAX_SIZE = 250;
+	private static final double PROFILE_IMAGE_SIZE = 36;
 	private String nick = null;
 	private String name = null;
 	private BlaNetwork networkAdapter = null;
@@ -72,23 +75,18 @@ public class Chat extends Activity {
 		setContentView(R.layout.activity_chat);
 
 		final Chat parent = this;
-		EditText editText = (EditText) findViewById(R.id.editText1);
-		editText.setOnEditorActionListener(new OnEditorActionListener() {
+		ImageView img = (ImageView) findViewById(R.id.imageView1);
+		img.setOnClickListener(new OnClickListener() {
 			@Override
-			public boolean onEditorAction(TextView v, int actionId,
-					KeyEvent event) {
-				boolean handled = false;
-				if (actionId == EditorInfo.IME_ACTION_SEND) {
-					String message = ((EditText) findViewById(R.id.editText1))
-							.getText().toString();
-					if (!message.equals("")) {
-						new SendMessageThread(parent, message, nick).start();
-						((EditText) findViewById(R.id.editText1)).setText("");
-						insertMessage(message);
-					}
-					handled = true;
+			public void onClick(View v) {
+				String message = ((EditText) findViewById(R.id.editText1))
+						.getText().toString();
+				Log.d("debug", message);
+				if (!message.equals("")) {
+					((EditText) findViewById(R.id.editText1)).setText("");
+					new SendMessageThread(parent, message, nick).start();
+					insertMessage(message);
 				}
-				return handled;
 			}
 		});
 
@@ -199,15 +197,17 @@ public class Chat extends Activity {
 				ll.addView(textView);
 			}
 			for (int i = messages.length - 1; i >= 0; i--) {
+				int tmp = i;
 				c = messages[i];
 				if (c == null) {
 					continue;
 				}
 				RelativeLayout outer = new RelativeLayout(this);
+				LinearLayout outer2 = new LinearLayout(this);
+				LinearLayout outer3 = new LinearLayout(this);
+				outer3.setOrientation(LinearLayout.HORIZONTAL);
 				LinearLayout view = new LinearLayout(this);
 				view.setOrientation(LinearLayout.VERTICAL);
-				TextView title = new TextView(this);
-				view.addView(title);
 
 				while (i >= 0 && c.author.equals(messages[i].author)
 						&& !timeDif(c.time, messages[i].time)) {
@@ -238,36 +238,46 @@ public class Chat extends Activity {
 							c.message = "hangout is over";
 						}
 					} else {
+						textView.setMinimumWidth(96+48);
 						view.addView(textView);
 					}
 					i--;
 				}
 				i++;
 
-				view.setPadding(4, 4, 4, 4);
-				outer.addView(view);
-				if (c.author.equals(BlaNetwork.getInstance().getUser())) {
-					view.setBackgroundColor(Color.rgb(245, 255, 245));
-					int r = (c.author.hashCode() & 0xFF0000) >> 16;
-					int g = (c.author.hashCode() & 0x00FF00) >> 8;
-					int b = (c.author.hashCode() & 0x0000FF) >> 0;
-					title.setTextSize(11);
-					title.setPadding(8, 8, 8, 4);
-					title.setTextColor(Color.rgb(r / 2, g / 2, b / 2));
-					outer.setGravity(Gravity.RIGHT);
-					outer.setPadding(48, 8, 4, 8);
-					title.setText("You (" + c.time + ")");
+				TextView vTime = new TextView(this);
+				vTime.setTextColor(Color.rgb(150, 150, 150));
+				vTime.setGravity(Gravity.RIGHT);
+				if (c.time.equals("uploading...")) {
+					vTime.setText(c.time);
 				} else {
-					view.setBackgroundColor(Color.rgb(245, 245, 255));
-					int r = (c.author.hashCode() & 0xFF0000) >> 16;
-					int g = (c.author.hashCode() & 0x00FF00) >> 8;
-					int b = (c.author.hashCode() & 0x0000FF) >> 0;
-					title.setTextSize(11);
-					title.setPadding(8, 8, 8, 4);
-					title.setTextColor(Color.rgb(r / 2, g / 2, b / 2));
-					outer.setPadding(4, 8, 48, 8);
-					title.setText(c.sender + " (" + c.time + ")");
+					if (!(tmp < messages.length - 1 && c.time.substring(0, 10)
+							.equals(messages[tmp + 1].time.substring(0, 10)))) {
+						ll.addView(getTimestamp(c.time.substring(0, 10)));
+					}
+					vTime.setText(c.time.substring(11, 16));
 				}
+				view.addView(vTime);
+				view.setPadding(4, 4, 4, 1);
+				int a = 0;
+				if (c.author.equals(BlaNetwork.getInstance().getUser())) {
+					view.setBackgroundColor(Color
+							.rgb(245 - a, 255 - a, 245 - a));
+					outer.setGravity(Gravity.RIGHT);
+					outer.setPadding(48 + 36, 8, 4, 8);
+				} else {
+					view.setBackgroundColor(Color
+							.rgb(245 - a, 245 - a, 255 - a));
+					outer.setPadding(4, 8, 48, 8);
+
+					outer3.addView(getImageViewTiny(this, BlaNetwork.BLA_SERVER
+							+ "/imgs/profile_" + c.author + ".png"));
+				}
+				outer2.setPadding(0, 0, 1, 1);
+				outer2.setBackgroundColor(Color.rgb(30, 30, 30));
+				outer2.addView(view);
+				outer3.addView(outer2);
+				outer.addView(outer3);
 				ll.addView(outer);
 			}
 		}
@@ -291,6 +301,29 @@ public class Chat extends Activity {
 	 * VideoView(this); vv.setMediaController(new MediaController(this));
 	 * vv.setVideoURI(Uri.parse(path)); vv.start(); return vv; }
 	 */
+
+	private View getTimestamp(String timestamp) {
+		LinearLayout view = new LinearLayout(this);
+		view.setPadding(48 + 36, 8, 48, 8);
+		view.setGravity(Gravity.CENTER);
+		LinearLayout shaddow = new LinearLayout(this);
+		shaddow.setPadding(0, 0, 1, 1);
+		shaddow.setBackgroundColor(Color.rgb(30, 30, 30));
+		shaddow.setGravity(Gravity.CENTER);
+		LinearLayout inner = new LinearLayout(this);
+		inner.setPadding(8, 2, 8, 2);
+		inner.setBackgroundColor(Color.rgb(230, 230, 230));
+		inner.setGravity(Gravity.CENTER);
+		TextView textView = new TextView(this);
+		textView.setPadding(8, 8, 8, 8);
+		textView.setText(timestamp);
+		textView.setTextColor(Color.rgb(150, 150, 150));
+		textView.setGravity(Gravity.CENTER);
+		inner.addView(textView);
+		shaddow.addView(inner);
+		view.addView(shaddow);
+		return view;
+	}
 
 	private boolean timeDif(String time, String time2) {
 		if (time.equals("uploading...") || time2.equals("uploading...")) {
@@ -616,5 +649,46 @@ public class Chat extends Activity {
 		if (result.length > 0 && result[0] != null) {
 			networkAdapter.setLastMessage(nick, result[0].message);
 		}
+	}
+
+	private ImageView getImageViewTiny(final Context ctx, final String path) {
+		final AutoBufferingImageView iv = new AutoBufferingImageView(ctx);
+		iv.setMaxWidth((int) PROFILE_IMAGE_SIZE);
+		iv.setMaxHeight((int) PROFILE_IMAGE_SIZE);
+		iv.setMinimumWidth((int) PROFILE_IMAGE_SIZE);
+		iv.setMinimumWidth((int) PROFILE_IMAGE_SIZE);
+
+		Drawable image = LocalResourceManager.getDrawable(ctx, path,
+				PROFILE_IMAGE_SIZE, 0);
+
+		if (image == null) {
+			new AsyncTask<Void, Void, Drawable>() {
+				private String p = "none";
+
+				@Override
+				protected Drawable doInBackground(Void... params) {
+					p = BlaNetwork.BLA_SERVER + "/imgs/user.png";
+					Drawable image = LocalResourceManager.getDrawable(ctx, p,
+							PROFILE_IMAGE_SIZE, 0);
+
+					return image;
+				}
+
+				@Override
+				public void onPostExecute(Drawable image) {
+					if (image == null) {
+						iv.setBackgroundColor(Color.rgb(0, 0, 0));
+						iv.setImage("none", PROFILE_IMAGE_SIZE, 0);
+					} else {
+						iv.setImageDrawable(image);
+						iv.setImage(p, PROFILE_IMAGE_SIZE, 0);
+					}
+				}
+			}.execute();
+		} else {
+			iv.setImageDrawable(image);
+			iv.setImage(path, PROFILE_IMAGE_SIZE, 0);
+		}
+		return iv;
 	}
 }
