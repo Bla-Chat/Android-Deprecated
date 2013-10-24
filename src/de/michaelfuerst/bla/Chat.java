@@ -347,7 +347,7 @@ public class Chat extends Activity {
 	}
 
 	private View getImageView(final String path) {
-		final AutoBufferingImageView iv = new AutoBufferingImageView(this);
+		final AutoBufferingImageView iv = new AutoBufferingImageView(this, false);
 		String preFile = path.split("/")[path.split("/").length - 1];
 		final String filename = Environment.getExternalStorageDirectory()
 				+ "/Pictures/BlaChat/" + preFile.split("\\.")[0] + ".png";
@@ -652,7 +652,7 @@ public class Chat extends Activity {
 	}
 
 	private ImageView getImageViewTiny(final Context ctx, final String path) {
-		final AutoBufferingImageView iv = new AutoBufferingImageView(ctx);
+		final AutoBufferingImageView iv = new AutoBufferingImageView(ctx, false);
 		iv.setMaxWidth((int) PROFILE_IMAGE_SIZE);
 		iv.setMaxHeight((int) PROFILE_IMAGE_SIZE);
 		iv.setMinimumWidth((int) PROFILE_IMAGE_SIZE);

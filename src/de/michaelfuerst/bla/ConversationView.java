@@ -85,7 +85,7 @@ public class ConversationView extends LinearLayout {
 		v.setMinimumHeight(96);
 		v.setMinimumWidth(96);
 		ImageView iv = getImageView(parent, BlaNetwork.BLA_SERVER
-				+ "/imgs/profile_" + localNick + ".png");
+				+ "/imgs/profile_" + localNick + ".png", PROFILE_IMAGE_SIZE, 1);
 		if (iv != null) {
 			iv.setAdjustViewBounds(true);
 			iv.setMaxHeight(96);
@@ -138,40 +138,19 @@ public class ConversationView extends LinearLayout {
 		setPadding(5, 5, 5, 5);
 	}
 
-	private ImageView getImageView(final Context ctx, final String path) {
+	static public ImageView getImageView(final Context ctx, final String path, final int size, final int buffer) {
 		final AutoBufferingImageView iv = new AutoBufferingImageView(
-				getContext());
-
+				ctx, true);
+		Drawable preload = LocalResourceManager.getDrawable(ctx, BlaNetwork.BLA_SERVER + "/imgs/user.png",
+				size, buffer);
 		Drawable image = LocalResourceManager.getDrawable(ctx, path,
-				PROFILE_IMAGE_SIZE, 1);
-
-		if (image == null) {
-			new AsyncTask<Void, Void, Drawable>() {
-				private String p = "none";
-
-				@Override
-				protected Drawable doInBackground(Void... params) {
-					p = BlaNetwork.BLA_SERVER + "/imgs/user.png";
-					Drawable image = LocalResourceManager.getDrawable(ctx, p,
-							PROFILE_IMAGE_SIZE, 1);
-
-					return image;
-				}
-
-				@Override
-				public void onPostExecute(Drawable image) {
-					if (image == null) {
-						iv.setBackgroundColor(Color.rgb(0, 0, 0));
-						iv.setImage("none", PROFILE_IMAGE_SIZE, 1);
-					} else {
-						iv.setImageDrawable(image);
-						iv.setImage(p, PROFILE_IMAGE_SIZE, 1);
-					}
-				}
-			}.execute();
-		} else {
+				size, buffer);
+		if (image != null) {
 			iv.setImageDrawable(image);
-			iv.setImage(path, PROFILE_IMAGE_SIZE, 1);
+			iv.setImage(path, size, buffer);
+		} else if (preload != null) {
+			iv.setImageDrawable(preload);
+			iv.setImage(path, size, buffer);
 		}
 		return iv;
 	}

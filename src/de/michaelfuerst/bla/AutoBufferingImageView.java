@@ -23,17 +23,26 @@ public class AutoBufferingImageView extends ImageView {
 	private double maxSize = 1.0d;
 	private boolean loading = false;
 	private int buffer = 0;
+	private boolean hardSize = true;
 
-	public AutoBufferingImageView(Context context) {
+	public AutoBufferingImageView(Context context, boolean hardSize) {
 		super(context);
 		ctx = context;
 		path = "none";
+		this.hardSize = hardSize;
 	}
 
 	public void setImage(String path, double maxSize, int buffer) {
 		this.path = path;
 		this.maxSize = maxSize;
 		this.buffer = buffer;
+		super.setMinimumHeight((int) maxSize);
+		super.setMinimumWidth((int) maxSize);
+		super.setMaxWidth((int) maxSize);
+		super.setMaxHeight((int) maxSize);
+		if (hardSize) {
+			super.setScaleType(ImageView.ScaleType.CENTER_CROP);
+		}
 	}
 
 	@Override
@@ -63,7 +72,7 @@ public class AutoBufferingImageView extends ImageView {
 							@Override
 							protected Drawable doInBackground(Void... params) {
 								return LocalResourceManager.getDrawable(ctx,
-										path, maxSize, buffer);
+											path, maxSize, buffer);
 							}
 
 							@Override

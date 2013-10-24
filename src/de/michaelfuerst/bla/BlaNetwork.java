@@ -97,6 +97,9 @@ public class BlaNetwork extends Service implements Runnable {
 		conversationNicks = new LinkedList<String>();
 		markedConversations = new LinkedList<String>();
 		lastMessages = new HashMap<String, String>();
+		synchronized(BlaNetwork.class) {
+			BlaNetwork.class.notifyAll();
+		}
 	}
 
 	public static BlaNetwork getInstance() {
@@ -443,6 +446,11 @@ public class BlaNetwork extends Service implements Runnable {
 			}
 			conversation += u;
 		}
+		
+		if (conversationNicks.contains(conversation)) {
+			return "ERROR";
+		}
+		
 		String jsonString = "{\"type\":\"onNewConversation\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
 				+ "\" , \"conversation\": \"" + conversation

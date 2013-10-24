@@ -13,7 +13,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
 import android.graphics.Color;
@@ -43,13 +45,10 @@ public class ChatCreator extends Activity {
 			public void onClick(View v) {
 				LinearLayout ll = (LinearLayout) findViewById(R.id.chatPartnerList);
 				final LinkedList<String> participants = new LinkedList<String>();
-				for (int i = 0; i < ll.getChildCount(); i++) {
-					CheckBox c = (CheckBox) ll.getChildAt(i);
+				for (int i = 0; i < ll.getChildCount()/2; i++) {
+					CheckBox c = (CheckBox) ((LinearLayout) ll.getChildAt(2*i)).getChildAt(0);
 					if (c.isChecked()) {
-						String tmp = c.getText() + "";
-						tmp = tmp.substring(tmp.lastIndexOf("(") + 1,
-								tmp.length() - 1);
-						participants.add(tmp);
+						participants.add(friendNicks[i]);
 					}
 				}
 				participants.add(BlaNetwork.getUser(that));
@@ -80,13 +79,24 @@ public class ChatCreator extends Activity {
 	}
 
 	private void setFriendList() {
+		int size = 48;
 		LinearLayout ll = (LinearLayout) findViewById(R.id.chatPartnerList);
 		for (int i = 0; i < friendNames.length && i < friendNicks.length; i++) {
+			String path = BlaNetwork.BLA_SERVER + "/profile_"+friendNicks[i]+".png";
+			View iv = ConversationView.getImageView(this, path, size, 0);
 			CheckBox c = new CheckBox(getBaseContext());
-			c.setText(friendNames[i] + " (" + friendNicks[i] + ")");
-			c.setTextColor(Color.BLACK);
-			c.setPadding(0, 16, 0, 16);
-			ll.addView(c);
+			TextView tv = new TextView(this);
+			tv.setText(friendNames[i]);
+			tv.setTextColor(Color.BLACK);
+			tv.setPadding(0, 16, 0, 16);
+			LinearLayout v = new LinearLayout(this);
+			v.setOrientation(LinearLayout.HORIZONTAL);
+			v.setMinimumHeight(size);
+			v.addView(c);
+			v.addView(iv);
+			v.addView(tv);
+			ll.addView(v);
+			ll.addView(new Delimiter(this));
 		}
 	}
 
