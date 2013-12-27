@@ -53,7 +53,8 @@ public class Chat extends Activity {
 
 	private static final int VIDEO_RESULT = 0;
 	private static final int IMAGE_RESULT = 0;
-	private static final int IMAGE_MAX_SIZE = 250;
+	private static final int IMAGE_MAX_WIDTH = 200;
+	private static final int IMAGE_MAX_HEIGHT = 150;
 	private static final double PROFILE_IMAGE_SIZE = 24;
 	private String nick = null;
 	private String name = null;
@@ -377,19 +378,26 @@ public class Chat extends Activity {
 				return true;
 			}
 		});
-		iv.setMaxHeight(IMAGE_MAX_SIZE);
-		iv.setMaxWidth(IMAGE_MAX_SIZE);
-		iv.setScaleType(ScaleType.CENTER_INSIDE);
+		
+		Resources r = this.getResources();
+		double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
+				r.getDisplayMetrics());
+		int res = (int) (IMAGE_MAX_HEIGHT * px);
+		int resW = (int) (IMAGE_MAX_WIDTH * px);
+		
+		iv.setMaxHeight(res);
+		iv.setMaxWidth(resW);
+		iv.setMinimumHeight(res);
+		iv.setMinimumWidth(resW);
+		iv.setScaleType(ScaleType.CENTER_CROP);
 		Drawable image = LocalResourceManager.getDrawable(this, filename,
-				IMAGE_MAX_SIZE, 0);
+				IMAGE_MAX_WIDTH, 0);
 		if (image != null) {
 			iv.setImageDrawable(image);
 		} else {
-			iv.setMinimumHeight(IMAGE_MAX_SIZE);
-			iv.setMinimumWidth(IMAGE_MAX_SIZE);
 			iv.setBackgroundColor(Color.LTGRAY);
 		}
-		iv.setImage(path, IMAGE_MAX_SIZE, 0);
+		iv.setImage(path, IMAGE_MAX_WIDTH, 0);
 		return iv;
 	}
 

@@ -123,7 +123,7 @@ public class LocalResourceManager {
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 			options.inSampleSize = calculateInSampleSize(bmpFac, maxSize,
-					maxSize) - 1;
+					maxSize);
 			if (options.inSampleSize < 1) {
 				options.inSampleSize = 1;
 			}

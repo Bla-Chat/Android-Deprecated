@@ -36,10 +36,10 @@ public class AutoBufferingImageView extends ImageView {
 		this.path = path;
 		this.maxSize = maxSize;
 		this.buffer = buffer;
-		super.setMinimumHeight((int) maxSize);
-		super.setMinimumWidth((int) maxSize);
-		super.setMaxWidth((int) maxSize);
-		super.setMaxHeight((int) maxSize);
+//		super.setMinimumHeight((int) maxSize);
+//		super.setMinimumWidth((int) maxSize);
+//		super.setMaxWidth((int) maxSize);
+//		super.setMaxHeight((int) maxSize);
 		if (hardSize) {
 			super.setScaleType(ImageView.ScaleType.CENTER_CROP);
 		}

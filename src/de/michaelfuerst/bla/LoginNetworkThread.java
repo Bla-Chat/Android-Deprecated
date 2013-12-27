@@ -5,6 +5,7 @@ package de.michaelfuerst.bla;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 /**
  * Multithread the network login.
@@ -30,18 +31,33 @@ public class LoginNetworkThread extends Thread {
 	@Override
 	public void run() {
 		if (nick != null && pw != null) {
-			BlaNetwork.getInstance().login(nick, pw, activity);
+			for(int i = 0; i < 3 && !BlaNetwork.getInstance().login(nick, pw, activity); i++) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					return;
+				}
+				if (i == 2) {
+					Log.d("LoginNetworkThread", "Login failed completly.");
+					return;
+				}
+			}
+			Log.d("LoginNetworkThread", "Login successfull.");
 			activity.startActivity(new Intent(activity.getApplicationContext(),
 					Conversations.class));
 		} else {
-			while(!BlaNetwork.getInstance().tryLogin(activity)) {
-				/*try {
-					Thread.sleep(5000);
+			for(int i = 0; i < 3 && !BlaNetwork.getInstance().tryLogin(activity); i++) {
+				try {
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					return;
-				}*/
-				return;
+				}
+				if (i == 2) {
+					Log.d("LoginNetworkThread", "Login failed completly. (with parameters)");
+					return;
+				}
 			}
+			Log.d("LoginNetworkThread", "Login successfull with parameters.");
 		}
 	}
 }

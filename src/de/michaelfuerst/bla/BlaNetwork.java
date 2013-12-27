@@ -97,9 +97,26 @@ public class BlaNetwork extends Service implements Runnable {
 		conversationNicks = new LinkedList<String>();
 		markedConversations = new LinkedList<String>();
 		lastMessages = new HashMap<String, String>();
-		synchronized(BlaNetwork.class) {
+		synchronized (BlaNetwork.class) {
 			BlaNetwork.class.notifyAll();
 		}
+		
+		// EMERGENCY WAKER
+		new Thread () {
+			@Override
+			public void run() {
+				while (true) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					synchronized (BlaNetwork.class) {
+						BlaNetwork.class.notifyAll();
+					}
+				}
+			}
+		}.start();
 	}
 
 	public static BlaNetwork getInstance() {
@@ -249,6 +266,17 @@ public class BlaNetwork extends Service implements Runnable {
 			addNotification(conversation, text, true);
 			status = 120;
 		}
+		// sort conversations list
+		int i = conversationNicks.indexOf(conversation);
+		if (i > 0) {
+			String s1 = conversations.remove(i);
+			String s2 = conversationNicks.remove(i);
+			conversations.addFirst(s1);
+			conversationNicks.addFirst(s2);
+
+			saveConversations();
+		}
+		
 		setLastMessage(conversation, text);
 		Chat.saveChatAs(this, conversation, getChat(conversation));
 		for (MessageListener l : listeners) {
@@ -358,7 +386,7 @@ public class BlaNetwork extends Service implements Runnable {
 				+ "\", \"message\": \"" + message + "\"}}";
 		return submit(jsonString, BLA_SERVER);
 	}
-	
+
 	/**
 	 * Rename a conversation
 	 * 
@@ -381,13 +409,17 @@ public class BlaNetwork extends Service implements Runnable {
 			}
 		}
 		String jsonString = "{\"type\":\"onRenameConversation\", \"msg\":{\"user\":\""
-				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
-				+ "\" , \"conversation\": \"" + conversation
-				+ "\" , \"name\": \"" + name
-				+ "\"}}";
+				+ nick
+				+ "\" , \"password\": \""
+				+ pw
+				+ "\" , \"id\": \""
+				+ id
+				+ "\" , \"conversation\": \""
+				+ conversation
+				+ "\" , \"name\": \"" + name + "\"}}";
 		return submit(jsonString, BLA_SERVER);
 	}
-	
+
 	/**
 	 * Rename a conversation
 	 * 
@@ -411,11 +443,10 @@ public class BlaNetwork extends Service implements Runnable {
 		}
 		String jsonString = "{\"type\":\"onAddFriend\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
-				+ "\" , \"name\": \"" + name
-				+ "\"}}";
+				+ "\" , \"name\": \"" + name + "\"}}";
 		return submit(jsonString, BLA_SERVER);
 	}
-	
+
 	/**
 	 * Open a conversation
 	 * 
@@ -438,7 +469,7 @@ public class BlaNetwork extends Service implements Runnable {
 		Collections.sort(users);
 		String conversation = "";
 		boolean first = true;
-		for (String u: users) {
+		for (String u : users) {
 			if (first) {
 				first = false;
 			} else {
@@ -446,20 +477,25 @@ public class BlaNetwork extends Service implements Runnable {
 			}
 			conversation += u;
 		}
-		
+
 		if (conversationNicks.contains(conversation)) {
 			return "ERROR";
 		}
-		
+
 		String jsonString = "{\"type\":\"onNewConversation\", \"msg\":{\"user\":\""
-				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
-				+ "\" , \"conversation\": \"" + conversation
-				+ "\"}}";
+				+ nick
+				+ "\" , \"password\": \""
+				+ pw
+				+ "\" , \"id\": \""
+				+ id
+				+ "\" , \"conversation\": \"" + conversation + "\"}}";
 		return submit(jsonString, BLA_SERVER);
 	}
 
-	/** Tries a login procedure. When the caller does not need to do anything, true is returned.
-	 * When false is returned you should call this method again after some time.
+	/**
+	 * Tries a login procedure. When the caller does not need to do anything,
+	 * true is returned. When false is returned you should call this method
+	 * again after some time.
 	 * 
 	 * @param parent
 	 * @return
@@ -468,26 +504,23 @@ public class BlaNetwork extends Service implements Runnable {
 		SharedPreferences app_preferences = PreferenceManager
 				.getDefaultSharedPreferences(parent);
 
-		if ((app_preferences.getString("nick", null) == null || app_preferences
-				.getString("pw", null) == null)) {
-
+		if (nick == null || pw == null) {
+			nick = app_preferences.getString("nick", nick);
+			pw = app_preferences.getString("pw", pw);
+		}
+		
+		if (nick == null || pw == null) {
 			if ((parent != this) && (parent != null)) {
 				Intent intent = new Intent(parent.getApplicationContext(),
 						Login.class);
 				parent.startActivity(intent);
 			}
+			Log.d("BlaNetwork", "Waiting for user input!");
 			return true;
 		} else {
-			nick = app_preferences.getString("nick", null);
-			pw = app_preferences.getString("pw", null);
 			id = getNetworkId();
-			// id = null;
 			if ((id == null || id.equals("REJECTED") || id.equals(""))) {
-				/*if ((parent != this) && (parent != null)) {
-					Intent intent = new Intent(parent.getApplicationContext(),
-							Login.class);
-					parent.startActivity(intent);
-				}*/
+				id = null;
 				return false;
 			} else {
 				synchronized (BlaNetwork.class) {
@@ -522,18 +555,25 @@ public class BlaNetwork extends Service implements Runnable {
 		nick = user;
 		this.pw = pw;
 		id = getNetworkId();
-		SharedPreferences app_preferences = PreferenceManager
-				.getDefaultSharedPreferences(activity);
 
-		SharedPreferences.Editor editor = app_preferences.edit();
-		editor.putString("pw", pw);
-		editor.putString("nick", nick);
-		editor.commit();
-
-		if (id == null | id.equals("ERROR") || id.equals("")) {
+		if (id == null || id.equals("ERROR") || id.equals("REJECTED") || id.equals("")) {
 			// The logindata must have been wrong. Refill form.
+			id = null;		
+			if ((activity != this) && (activity != null)) {
+				Intent intent = new Intent(activity.getApplicationContext(),
+						Login.class);
+				activity.startActivity(intent);
+			}
 			return false;
 		} else {
+			SharedPreferences app_preferences = PreferenceManager
+					.getDefaultSharedPreferences(activity);
+
+			SharedPreferences.Editor editor = app_preferences.edit();
+			editor.putString("pw", pw);
+			editor.putString("nick", nick);
+			editor.commit();
+			
 			synchronized (BlaNetwork.class) {
 				isReady = true;
 				BlaNetwork.class.notifyAll();
@@ -559,6 +599,7 @@ public class BlaNetwork extends Service implements Runnable {
 	 * @return The list of conversations.
 	 */
 	public void updateConversations() {
+		Log.d("Conversations", "UpdateStart");
 		synchronized (BlaNetwork.class) {
 			while (!isRunning) {
 				try {
@@ -568,6 +609,7 @@ public class BlaNetwork extends Service implements Runnable {
 				}
 			}
 		}
+		Log.d("Conversations", "Update");
 		String jsonString = "{\"type\":\"onGetChats\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \"" + id
 				+ "\"}}";
@@ -576,6 +618,7 @@ public class BlaNetwork extends Service implements Runnable {
 			return;
 		}
 		try {
+			Log.d("Conversations", result);
 			JSONArray ja = new JSONArray(result);
 			conversations.clear();
 			conversationNicks.clear();
@@ -656,7 +699,7 @@ public class BlaNetwork extends Service implements Runnable {
 	public boolean isRunning() {
 		return isRunning;
 	}
-	
+
 	public boolean isOnline() {
 		return !offline;
 	}
@@ -1243,7 +1286,9 @@ public class BlaNetwork extends Service implements Runnable {
 
 	/**
 	 * Rename self.
-	 * @param name The new name.
+	 * 
+	 * @param name
+	 *            The new name.
 	 * @return The result of the request.
 	 */
 	public String renameSelf(String name) {
@@ -1261,17 +1306,20 @@ public class BlaNetwork extends Service implements Runnable {
 		}
 		String jsonString = "{\"type\":\"onSetName\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
-				+ "\" , \"name\": \"" + name
-				+ "\"}}";
+				+ "\" , \"name\": \"" + name + "\"}}";
 		return submit(jsonString, BLA_SERVER);
 	}
 
 	public String setImage(Bitmap bmp, String conversation) {
 		conversation = conversation.replaceAll(",", "-");
-		String jsonString = "{\"type\":\"onSetGroupImage\", \"msg\":{\"user\":\"" + nick
-				+ "\" , \"password\": \"" + pw + "\", \"conversation\":\""
-				+ conversation + "\", \"type\":\"image\"}}";
-		
+		String jsonString = "{\"type\":\"onSetGroupImage\", \"msg\":{\"user\":\""
+				+ nick
+				+ "\" , \"password\": \""
+				+ pw
+				+ "\", \"conversation\":\""
+				+ conversation
+				+ "\", \"type\":\"image\"}}";
+
 		String result = "ERROR";
 		try {
 			HttpURLConnection conn = null;
@@ -1342,9 +1390,12 @@ public class BlaNetwork extends Service implements Runnable {
 	}
 
 	public String setImage(Bitmap bmp) {
-		String jsonString = "{\"type\":\"onSetProfileImage\", \"msg\":{\"user\":\"" + nick
-				+ "\" , \"password\": \"" + pw + "\", \"type\":\"image\"}}";
-		
+		String jsonString = "{\"type\":\"onSetProfileImage\", \"msg\":{\"user\":\""
+				+ nick
+				+ "\" , \"password\": \""
+				+ pw
+				+ "\", \"type\":\"image\"}}";
+
 		String result = "ERROR";
 		try {
 			HttpURLConnection conn = null;
