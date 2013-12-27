@@ -124,6 +124,9 @@ public class LocalResourceManager {
 			options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 			options.inSampleSize = calculateInSampleSize(bmpFac, maxSize,
 					maxSize) - 1;
+			if (options.inSampleSize < 1) {
+				options.inSampleSize = 1;
+			}
 			options.inJustDecodeBounds = false;
 			Bitmap bmp = BitmapFactory.decodeFile(filename, options);
 			if (bmp == null) {

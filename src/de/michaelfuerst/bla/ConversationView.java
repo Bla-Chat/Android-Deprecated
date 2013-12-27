@@ -6,10 +6,13 @@ package de.michaelfuerst.bla;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -22,7 +25,7 @@ import android.widget.TextView;
  */
 public class ConversationView extends LinearLayout {
 
-	private static final int PROFILE_IMAGE_SIZE = 96;
+	private static final int PROFILE_IMAGE_SIZE = 64;
 	
 	public ConversationView(final Conversations parent, ConversationViewData d, String user) {
 		super(parent);
@@ -69,6 +72,12 @@ public class ConversationView extends LinearLayout {
 
 	private void createChilds(Context parent, String name, String nick,
 			String user) {
+
+		Resources r = parent.getResources();
+		double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
+				r.getDisplayMetrics());
+		int res = (int) (PROFILE_IMAGE_SIZE * px);
+		
 		String s[] = nick.split(",");
 		String localNick = nick;
 		if (s.length == 2) {
@@ -82,21 +91,23 @@ public class ConversationView extends LinearLayout {
 			localNick = nick.replaceAll(",", "-");
 		}
 		RelativeLayout v = new RelativeLayout(parent);
-		v.setMinimumHeight(96);
-		v.setMinimumWidth(96);
+		v.setMinimumHeight(res);
+		v.setMinimumWidth(res);
+		v.setGravity(Gravity.CLIP_HORIZONTAL);
 		ImageView iv = getImageView(parent, BlaNetwork.BLA_SERVER
 				+ "/imgs/profile_" + localNick + ".png", PROFILE_IMAGE_SIZE, 1);
 		if (iv != null) {
-			iv.setAdjustViewBounds(true);
-			iv.setMaxHeight(96);
-			iv.setMaxWidth(96);
-			iv.setMinimumHeight(96);
-			iv.setMinimumWidth(96);
+			//iv.setAdjustViewBounds(true);
+			iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
+			iv.setMaxHeight(res);
+			iv.setMaxWidth(res);
+			iv.setMinimumHeight(res);
+			iv.setMinimumWidth(res);
 			v.addView(iv);
 			addView(v);
 		}
 		LinearLayout ll = new LinearLayout(parent);
-		ll.setMinimumHeight(96);
+		ll.setMinimumHeight(res);
 		ll.setOrientation(VERTICAL);
 		TextView t = new TextView(parent);
 		String text = name;

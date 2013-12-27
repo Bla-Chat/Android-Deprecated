@@ -11,6 +11,7 @@ import android.os.Environment;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -37,6 +38,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -52,7 +54,7 @@ public class Chat extends Activity {
 	private static final int VIDEO_RESULT = 0;
 	private static final int IMAGE_RESULT = 0;
 	private static final int IMAGE_MAX_SIZE = 250;
-	private static final double PROFILE_IMAGE_SIZE = 36;
+	private static final double PROFILE_IMAGE_SIZE = 24;
 	private String nick = null;
 	private String name = null;
 	private BlaNetwork networkAdapter = null;
@@ -270,8 +272,19 @@ public class Chat extends Activity {
 							.rgb(245 - a, 245 - a, 255 - a));
 					outer.setPadding(4, 8, 48, 8);
 
-					outer3.addView(getImageViewTiny(this, BlaNetwork.BLA_SERVER
+					Resources r = this.getResources();
+					double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
+							r.getDisplayMetrics());
+					final int res = (int)(PROFILE_IMAGE_SIZE * px);
+					
+					RelativeLayout v = new RelativeLayout(this);
+					v.setMinimumHeight(res);
+					v.setMinimumWidth(res);
+					v.setGravity(Gravity.CLIP_HORIZONTAL);
+
+					v.addView(getImageViewTiny(this, BlaNetwork.BLA_SERVER
 							+ "/imgs/profile_" + c.author + ".png"));
+					outer3.addView(v);
 				}
 				outer2.setPadding(0, 0, 1, 1);
 				outer2.setBackgroundColor(Color.rgb(30, 30, 30));
@@ -347,6 +360,7 @@ public class Chat extends Activity {
 	}
 
 	private View getImageView(final String path) {
+		
 		final AutoBufferingImageView iv = new AutoBufferingImageView(this, false);
 		String preFile = path.split("/")[path.split("/").length - 1];
 		final String filename = Environment.getExternalStorageDirectory()
@@ -652,14 +666,21 @@ public class Chat extends Activity {
 	}
 
 	private ImageView getImageViewTiny(final Context ctx, final String path) {
+		Resources r = ctx.getResources();
+		double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
+				r.getDisplayMetrics());
+		final int size = (int)(PROFILE_IMAGE_SIZE * px);
+		
 		final AutoBufferingImageView iv = new AutoBufferingImageView(ctx, false);
-		iv.setMaxWidth((int) PROFILE_IMAGE_SIZE);
-		iv.setMaxHeight((int) PROFILE_IMAGE_SIZE);
-		iv.setMinimumWidth((int) PROFILE_IMAGE_SIZE);
-		iv.setMinimumWidth((int) PROFILE_IMAGE_SIZE);
+		iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
+		//iv.setAdjustViewBounds(true);
+		iv.setMaxWidth(size);
+		iv.setMaxHeight(size);
+		iv.setMinimumWidth(size);
+		iv.setMinimumWidth(size);
 
 		Drawable image = LocalResourceManager.getDrawable(ctx, path,
-				PROFILE_IMAGE_SIZE, 0);
+				size, 0);
 
 		if (image == null) {
 			new AsyncTask<Void, Void, Drawable>() {
@@ -669,7 +690,7 @@ public class Chat extends Activity {
 				protected Drawable doInBackground(Void... params) {
 					p = BlaNetwork.BLA_SERVER + "/imgs/user.png";
 					Drawable image = LocalResourceManager.getDrawable(ctx, p,
-							PROFILE_IMAGE_SIZE, 0);
+							size, 0);
 
 					return image;
 				}
@@ -678,16 +699,16 @@ public class Chat extends Activity {
 				public void onPostExecute(Drawable image) {
 					if (image == null) {
 						iv.setBackgroundColor(Color.rgb(0, 0, 0));
-						iv.setImage("none", PROFILE_IMAGE_SIZE, 0);
+						iv.setImage("none", size, 0);
 					} else {
 						iv.setImageDrawable(image);
-						iv.setImage(p, PROFILE_IMAGE_SIZE, 0);
+						iv.setImage(p, size, 0);
 					}
 				}
 			}.execute();
 		} else {
 			iv.setImageDrawable(image);
-			iv.setImage(path, PROFILE_IMAGE_SIZE, 0);
+			iv.setImage(path, size, 0);
 		}
 		return iv;
 	}
