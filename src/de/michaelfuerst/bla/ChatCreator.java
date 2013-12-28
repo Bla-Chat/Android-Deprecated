@@ -2,7 +2,7 @@ package de.michaelfuerst.bla;
 
 import java.util.LinkedList;
 
-import de.michaelfuerst.hangout.R;
+import de.michaelfuerst.bla.R;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;

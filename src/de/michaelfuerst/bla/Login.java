@@ -1,6 +1,6 @@
 package de.michaelfuerst.bla;
 
-import de.michaelfuerst.hangout.R;
+import de.michaelfuerst.bla.R;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;

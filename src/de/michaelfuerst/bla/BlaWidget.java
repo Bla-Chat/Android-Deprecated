@@ -1,6 +1,6 @@
 package de.michaelfuerst.bla;
 
-import de.michaelfuerst.hangout.R;
+import de.michaelfuerst.bla.R;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;

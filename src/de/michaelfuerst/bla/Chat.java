@@ -2,7 +2,7 @@ package de.michaelfuerst.bla;
 
 import java.io.File;
 
-import de.michaelfuerst.hangout.R;
+import de.michaelfuerst.bla.R;
 
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -13,21 +13,18 @@ import android.app.AlertDialog;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 import android.widget.ImageView.ScaleType;
 import android.support.v4.app.NavUtils;

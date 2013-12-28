@@ -10,7 +10,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -26,6 +25,11 @@ import android.widget.TextView;
 public class ConversationView extends LinearLayout {
 
 	private static final int PROFILE_IMAGE_SIZE = 64;
+	
+	public ConversationView(Context parent) throws IllegalAccessException {
+		super(parent);
+		throw new IllegalAccessException();
+	}
 	
 	public ConversationView(final Conversations parent, ConversationViewData d, String user) {
 		super(parent);

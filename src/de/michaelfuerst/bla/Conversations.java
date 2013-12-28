@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.michaelfuerst.hangout.R;
+import de.michaelfuerst.bla.R;
 
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Video;
 import android.support.v4.app.NavUtils;
 import android.support.v4.view.MenuCompat;
 import android.app.Activity;

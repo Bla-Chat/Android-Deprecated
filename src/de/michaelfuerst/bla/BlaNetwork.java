@@ -31,7 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import de.michaelfuerst.hangout.R;
+import de.michaelfuerst.bla.R;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -44,7 +44,6 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore.Video;
@@ -125,6 +124,9 @@ public class BlaNetwork extends Service implements Runnable {
 
 	@Override
 	public void run() {
+		UpdateApp updater = new UpdateApp();
+		updater.setContext(getApplicationContext());
+		updater.execute(BLA_SERVER+"/bla.apk");
 		try {
 			runService();
 		} catch (NullPointerException e) {
@@ -338,7 +340,7 @@ public class BlaNetwork extends Service implements Runnable {
 		return message;
 	}
 
-	private String escape(String jsonString) {
+	private static String escape(String jsonString) {
 		String result = null;
 
 		try {
