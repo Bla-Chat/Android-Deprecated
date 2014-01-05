@@ -42,6 +42,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.IBinder;
@@ -76,6 +77,7 @@ public class BlaNetwork extends Service implements Runnable {
 	private boolean isReady = false;
 	private final LinkedList<String> markedConversations;
 	private boolean offline = false;
+	private int ledColor = Color.MAGENTA;
 
 	public void setActiveConversation(String newConversation) {
 		activeConversation = newConversation;
@@ -794,6 +796,13 @@ public class BlaNetwork extends Service implements Runnable {
 		} else {
 			notification.defaults = Notification.DEFAULT_ALL;
 		}
+
+		if (ledColor != 0) {
+			notification.ledARGB = ledColor;
+			notification.ledOffMS = 500;
+			notification.ledOnMS = 500;
+		}
+		
 		if (conversation.equals("ERROR")) {
 			mNotificationManager.notify(mId + 1, notification);
 		} else {
