@@ -103,6 +103,11 @@ public class SettingsActivity extends PreferenceActivity {
                 return true;
             }
         });
+
+        Preference server = (Preference) findPreference("bla_server");
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        String serverStr = preferences.getString("bla_server", BlaNetwork.DEFAULT_BLA_SERVER);
+        server.setSummary(serverStr);
     }
 
     @Override

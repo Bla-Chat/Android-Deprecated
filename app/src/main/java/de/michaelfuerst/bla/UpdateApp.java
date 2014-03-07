@@ -65,7 +65,7 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 	@Override
 	protected Void doInBackground(String... arg0) {
 		try {
-			if (!needsUpdate(BlaNetwork.BLA_SERVER)) {
+			if (!needsUpdate(BlaNetwork.getServer(context))) {
 				Log.d("Updater", "Skipping update already up to date!");
 				return null;
 			}

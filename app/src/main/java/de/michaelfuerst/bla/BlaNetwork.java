@@ -31,8 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import de.michaelfuerst.bla.R;
-
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -59,10 +58,11 @@ import android.util.Log;
 public class BlaNetwork extends Service implements Runnable {
 	private static BlaNetwork instance = null;
 
-	public final static String SEPERATOR = "◘";
+	public final static String SEPARATOR = "◘";
 	public final static String EOL = "ﺿ";
 	public final static int CONVERSATION_PARAMETERS = 4;
-	public final static String BLA_SERVER = "https://www.ssl-id.de/bla.f-online.net/api";
+	public final static String DEFAULT_BLA_SERVER = "https://www.ssl-id.de/bla.f-online.net";
+    private static String server = null;
 
 	private LinkedList<MessageListener> listeners = new LinkedList<MessageListener>();
 	private final LinkedList<String> conversations;
@@ -79,7 +79,33 @@ public class BlaNetwork extends Service implements Runnable {
 	private boolean offline = false;
 	private int ledColor = Color.MAGENTA;
 
-	public void setActiveConversation(String newConversation) {
+    public static void setServer(String server, Context ctx) {
+        BlaNetwork.server = server;
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx.getApplicationContext());
+        preferences.edit().putString("bla_server", server).commit();
+    }
+
+    private String getServer() {
+        return getServer(this);
+    }
+
+    public static String getServer(Context ctx) {
+        if (server == null) {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx.getApplicationContext());
+            server = preferences.getString("bla_server", DEFAULT_BLA_SERVER);
+        }
+
+        String separator = "";
+        if (!server.endsWith("/")) {
+            separator = "/";
+        }
+
+        Log.d("ServerAddress", server + separator + "api");
+        return server + separator + "api";
+    }
+
+    public void setActiveConversation(String newConversation) {
 		activeConversation = newConversation;
 	}
 
@@ -93,6 +119,7 @@ public class BlaNetwork extends Service implements Runnable {
 	 */
 	public BlaNetwork() {
 		super();
+
 		instance = this;
 		conversations = new LinkedList<String>();
 		conversationNicks = new LinkedList<String>();
@@ -137,9 +164,11 @@ public class BlaNetwork extends Service implements Runnable {
 
 	@Override
 	public void run() {
+        getServer(this);
+
 		UpdateApp updater = new UpdateApp();
 		updater.setContext(getApplicationContext());
-		updater.execute(BLA_SERVER+"/bla.apk");
+		updater.execute(getServer()+"/bla.apk");
 		try {
 			runService();
 		} catch (NullPointerException e) {
@@ -196,7 +225,7 @@ public class BlaNetwork extends Service implements Runnable {
 					+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \""
 					+ id + "\"}}";
 			try {
-				String result = submit(jsonString, BLA_SERVER);
+				String result = submit(jsonString, getServer());
 				if (result != null && !result.equals("")) {
 					JSONArray ja = new JSONArray(result);
 					for (int i = 0; i < ja.length(); i++) {
@@ -232,7 +261,7 @@ public class BlaNetwork extends Service implements Runnable {
 				+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \""
 				+ oldId + "\"}}";
 		try {
-			JSONArray ja = new JSONArray(submit(jsonString, BLA_SERVER));
+			JSONArray ja = new JSONArray(submit(jsonString, getServer()));
 			for (int i = 0; i < ja.length(); i++) {
 				JSONObject jo = (JSONObject) ja.get(i);
 				handleIncoming(jo);
@@ -348,7 +377,19 @@ public class BlaNetwork extends Service implements Runnable {
 		} catch (JSONException e) {
 			message = "ERROR";
 			Log.d("NetworkError", "ERROR: " + totalMessage);
-		}
+		} catch (IllegalStateException e) {
+            Context context = BlaNetwork.getInstance().getApplicationContext();
+            SharedPreferences settings = PreferenceManager
+                    .getDefaultSharedPreferences(context);
+            settings.edit().clear().commit();
+
+            Intent mStartActivity = new Intent(context, Conversations.class);
+            int mPendingIntentId = 123456;
+            PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId,    mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+            AlarmManager mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+            mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+            System.exit(0);
+        }
 		if ((message == null || message.equals("")) && !offline) {
 			offline = true;
 			Log.d("ConnectionError", jsonString);
@@ -407,7 +448,7 @@ public class BlaNetwork extends Service implements Runnable {
 				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
 				+ "\" , \"conversation\": \"" + conversation
 				+ "\", \"message\": \"" + message + "\"}}";
-		return submit(jsonString, BLA_SERVER);
+		return submit(jsonString, getServer());
 	}
 
 	/**
@@ -440,7 +481,7 @@ public class BlaNetwork extends Service implements Runnable {
 				+ "\" , \"conversation\": \""
 				+ conversation
 				+ "\" , \"name\": \"" + name + "\"}}";
-		return submit(jsonString, BLA_SERVER);
+		return submit(jsonString, getServer());
 	}
 
 	/**
@@ -467,7 +508,7 @@ public class BlaNetwork extends Service implements Runnable {
 				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
 				+ "\" , \"name\": \"" + name + "\"}}";
 
-        String result = submit(jsonString, BLA_SERVER);
+        String result = submit(jsonString, getServer());
 
         // Update contacts before we leave.
         contactNames = null;
@@ -519,7 +560,7 @@ public class BlaNetwork extends Service implements Runnable {
 				+ "\" , \"id\": \""
 				+ id
 				+ "\" , \"conversation\": \"" + conversation + "\"}}";
-		return submit(jsonString, BLA_SERVER);
+		return submit(jsonString, getServer());
 	}
 
 	/**
@@ -562,7 +603,7 @@ public class BlaNetwork extends Service implements Runnable {
 		}
 		String jsonString = "{\"type\":\"onIdRequest\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\"}}";
-		return submit(jsonString, BLA_SERVER);
+		return submit(jsonString, getServer());
 	}
 
 	/**
@@ -632,7 +673,7 @@ public class BlaNetwork extends Service implements Runnable {
 		String jsonString = "{\"type\":\"onGetChats\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \"" + id
 				+ "\"}}";
-		String result = submit(jsonString, BLA_SERVER);
+		String result = submit(jsonString, getServer());
 		if (result == null || result.equals("")) {
 			return;
 		}
@@ -681,7 +722,7 @@ public class BlaNetwork extends Service implements Runnable {
 		String jsonString = "{\"type\":\"onGetHistory\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \"" + id
 				+ "\", \"conversation\":\"" + conversation + "\"}}";
-		String result = submit(jsonString, BLA_SERVER);
+		String result = submit(jsonString, getServer());
 		if (result == null || result.equals("")) {
 			return null;
 		}
@@ -847,8 +888,8 @@ public class BlaNetwork extends Service implements Runnable {
 		for (LocalNotification n : notifications) {
 			if (n.conversation.equals("ERROR"))
 				continue;
-			temp += n.conversation + SEPERATOR + n.message
-					+ BlaNetwork.SEPERATOR + n.name + BlaNetwork.EOL;
+			temp += n.conversation + SEPARATOR + n.message
+					+ BlaNetwork.SEPARATOR + n.name + BlaNetwork.EOL;
 		}
 
 		SharedPreferences app_preferences = PreferenceManager
@@ -867,7 +908,7 @@ public class BlaNetwork extends Service implements Runnable {
 				.getString("notifications_" + nick, "").split(BlaNetwork.EOL);
 		notifications.clear();
 		for (int i = 0; i < splits.length; i++) {
-			String[] sub = splits[i].split(BlaNetwork.SEPERATOR);
+			String[] sub = splits[i].split(BlaNetwork.SEPARATOR);
 			if (sub.length == 3) {
 				LocalNotification n = new LocalNotification();
 				n.conversation = sub[0];
@@ -951,7 +992,7 @@ public class BlaNetwork extends Service implements Runnable {
 						+ "{\"user\":\"" + nick + "\" , \"password\": \"" + pw
 						+ "\", \"id\": \"" + id + "\", \"conversation\":\""
 						+ conversation + "\"}}";
-				submit(jsonString, BLA_SERVER);
+				submit(jsonString, getServer());
 			}
 
 		}.start();
@@ -1015,7 +1056,7 @@ public class BlaNetwork extends Service implements Runnable {
 			HttpURLConnection conn = null;
 			DataOutputStream dos = null;
 			DataInputStream dis = null;
-			URL url = new URL(BLA_SERVER + "/api.php");
+			URL url = new URL(getServer() + "/api.php");
 			// ------------------ CLIENT REQUEST
 
 			// open a URL connection to the Servlet
@@ -1094,7 +1135,7 @@ public class BlaNetwork extends Service implements Runnable {
 					DataOutputStream dos = null;
 					DataInputStream dis = null;
 					// FileInputStream fileInputStream = null;
-					URL url = new URL(BLA_SERVER + "/api.php");
+					URL url = new URL(getServer() + "/api.php");
 					// ------------------ CLIENT REQUEST
 
 					// open a URL connection to the Servlet
@@ -1228,7 +1269,7 @@ public class BlaNetwork extends Service implements Runnable {
 			contactNicks = new String[splits.length];
 
 			for (int i = 0; i < splits.length; i++) {
-				String[] s = splits[i].split(SEPERATOR);
+				String[] s = splits[i].split(SEPARATOR);
 				if (s.length >= 2) {
 					contactNames[i] = s[0];
 					contactNicks[i] = s[1];
@@ -1256,7 +1297,7 @@ public class BlaNetwork extends Service implements Runnable {
 		String jsonString = "{\"type\":\"onGetContacts\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\" }}";
 
-		String result = submit(jsonString, BLA_SERVER);
+		String result = submit(jsonString, getServer());
 
 		if (result.equals("ERROR")) {
 			return;
@@ -1278,7 +1319,7 @@ public class BlaNetwork extends Service implements Runnable {
 
 		String temp = "";
 		for (int i = 0; i < contactNames.length; i++) {
-			temp += contactNames[i] + SEPERATOR + contactNicks[i] + EOL;
+			temp += contactNames[i] + SEPARATOR + contactNicks[i] + EOL;
 		}
 		SharedPreferences app_preferences = PreferenceManager
 				.getDefaultSharedPreferences(getApplicationContext());
@@ -1332,7 +1373,7 @@ public class BlaNetwork extends Service implements Runnable {
 		String jsonString = "{\"type\":\"onSetName\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
 				+ "\" , \"name\": \"" + name + "\"}}";
-		return submit(jsonString, BLA_SERVER);
+		return submit(jsonString, getServer());
 	}
 
 	public String setImage(Bitmap bmp, String conversation) {
@@ -1350,7 +1391,7 @@ public class BlaNetwork extends Service implements Runnable {
 			HttpURLConnection conn = null;
 			DataOutputStream dos = null;
 			DataInputStream dis = null;
-			URL url = new URL(BLA_SERVER + "/api.php");
+			URL url = new URL(getServer() + "/api.php");
 			// ------------------ CLIENT REQUEST
 
 			// open a URL connection to the Servlet
@@ -1426,7 +1467,7 @@ public class BlaNetwork extends Service implements Runnable {
 			HttpURLConnection conn = null;
 			DataOutputStream dos = null;
 			DataInputStream dis = null;
-			URL url = new URL(BLA_SERVER + "/api.php");
+			URL url = new URL(getServer() + "/api.php");
 			// ------------------ CLIENT REQUEST
 
 			// open a URL connection to the Servlet

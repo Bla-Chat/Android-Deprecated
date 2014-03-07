@@ -24,7 +24,16 @@ public class LoginNetworkThread extends Thread {
 
 	public LoginNetworkThread(Context activity, String nick, String pw) {
 		this.activity = activity;
-		this.nick = nick;
+        if (nick != null) {
+            String[] nicksplit = nick.split("@");
+            this.nick = nicksplit[0];
+            if (nicksplit.length > 1) {
+                // User wants to use other server
+                BlaNetwork.setServer(nick.split("@")[1], activity);
+            } else {
+                BlaNetwork.setServer(BlaNetwork.DEFAULT_BLA_SERVER, activity);
+            }
+        }
 		this.pw = pw;
 	}
 

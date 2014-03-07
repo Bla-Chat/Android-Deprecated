@@ -2,8 +2,6 @@ package de.michaelfuerst.bla;
 
 import java.io.File;
 
-import de.michaelfuerst.bla.R;
-
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -163,7 +161,7 @@ public class Chat extends Activity {
 				.split(BlaNetwork.EOL);
 		ChatMessage[] chatList = new ChatMessage[splits.length];
 		for (int i = 0; i < splits.length; i++) {
-			String[] sub = splits[i].split(BlaNetwork.SEPERATOR);
+			String[] sub = splits[i].split(BlaNetwork.SEPARATOR);
 			if (sub.length == 4) {
 				chatList[i] = new ChatMessage();
 				chatList[i].author = sub[0];
@@ -179,9 +177,9 @@ public class Chat extends Activity {
 			ChatMessage[] chatList) {
 		String temp = "";
 		for (int i = 0; i < chatList.length; i++) {
-			temp += chatList[i].author + BlaNetwork.SEPERATOR
-					+ chatList[i].message + BlaNetwork.SEPERATOR
-					+ chatList[i].sender + BlaNetwork.SEPERATOR
+			temp += chatList[i].author + BlaNetwork.SEPARATOR
+					+ chatList[i].message + BlaNetwork.SEPARATOR
+					+ chatList[i].sender + BlaNetwork.SEPARATOR
 					+ chatList[i].time + BlaNetwork.EOL;
 		}
 
@@ -308,7 +306,7 @@ public class Chat extends Activity {
 					v.setMinimumWidth(res);
 					v.setGravity(Gravity.CLIP_HORIZONTAL);
 
-					v.addView(getImageViewTiny(this, BlaNetwork.BLA_SERVER
+					v.addView(getImageViewTiny(this, BlaNetwork.getServer(this)
 							+ "/imgs/profile_" + c.author + ".png"));
 					outer3.addView(v);
 				}
@@ -727,7 +725,7 @@ public class Chat extends Activity {
 
 				@Override
 				protected Drawable doInBackground(Void... params) {
-					p = BlaNetwork.BLA_SERVER + "/imgs/user.png";
+					p = BlaNetwork.getServer(ctx) + "/imgs/user.png";
 					Drawable image = LocalResourceManager.getDrawable(ctx, p,
 							size, 0);
 

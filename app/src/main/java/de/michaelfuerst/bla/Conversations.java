@@ -1,17 +1,11 @@
 package de.michaelfuerst.bla;
 
-import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.michaelfuerst.bla.R;
-
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
 import android.support.v4.app.NavUtils;
 import android.support.v4.view.MenuCompat;
 import android.app.Activity;
@@ -20,9 +14,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -238,13 +229,13 @@ public class Conversations extends Activity implements MessageListener {
 		for (int i = 0; i < conversations.size(); i++) {
 			ConversationViewData current = conversations.get(i);
 			temp += current.name;
-			temp += BlaNetwork.SEPERATOR + current.nick;
+			temp += BlaNetwork.SEPARATOR + current.nick;
 			if (current.marked) {
-				temp += BlaNetwork.SEPERATOR + "true";
+				temp += BlaNetwork.SEPARATOR + "true";
 			} else {
-				temp += BlaNetwork.SEPERATOR + "false";
+				temp += BlaNetwork.SEPARATOR + "false";
 			}
-			temp += BlaNetwork.SEPERATOR + current.lastMessage;
+			temp += BlaNetwork.SEPARATOR + current.lastMessage;
 			temp += BlaNetwork.EOL;
 		}
 
@@ -272,7 +263,7 @@ public class Conversations extends Activity implements MessageListener {
 				BlaNetwork.EOL);
 
 		for (String s : lines) {
-			String[] splits = s.split(BlaNetwork.SEPERATOR);
+			String[] splits = s.split(BlaNetwork.SEPARATOR);
 			if (splits.length == BlaNetwork.CONVERSATION_PARAMETERS) {
 				ConversationViewData tmp = new ConversationViewData();
 				tmp.name = splits[0];

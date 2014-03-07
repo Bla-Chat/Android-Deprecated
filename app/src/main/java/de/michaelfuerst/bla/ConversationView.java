@@ -98,7 +98,7 @@ public class ConversationView extends LinearLayout {
 		v.setMinimumHeight(res);
 		v.setMinimumWidth(res);
 		v.setGravity(Gravity.CLIP_HORIZONTAL);
-		ImageView iv = getImageView(parent, BlaNetwork.BLA_SERVER
+		ImageView iv = getImageView(parent, BlaNetwork.getServer(parent)
 				+ "/imgs/profile_" + localNick + ".png", PROFILE_IMAGE_SIZE, 1);
 		if (iv != null) {
 			//iv.setAdjustViewBounds(true);
@@ -156,7 +156,7 @@ public class ConversationView extends LinearLayout {
 	static public ImageView getImageView(final Context ctx, final String path, final int size, final int buffer) {
 		final AutoBufferingImageView iv = new AutoBufferingImageView(
 				ctx, true);
-		Drawable preload = LocalResourceManager.getDrawable(ctx, BlaNetwork.BLA_SERVER + "/imgs/user.png",
+		Drawable preload = LocalResourceManager.getDrawable(ctx, BlaNetwork.getServer(ctx) + "/imgs/user.png",
 				size, buffer);
 		Drawable image = LocalResourceManager.getDrawable(ctx, path,
 				size, buffer);

@@ -81,7 +81,7 @@ public class ChatCreator extends Activity {
 		int size = 48;
 		LinearLayout ll = (LinearLayout) findViewById(R.id.chatPartnerList);
 		for (int i = 0; i < friendNames.length && i < friendNicks.length; i++) {
-			String path = BlaNetwork.BLA_SERVER + "/profile_"+friendNicks[i]+".png";
+			String path = BlaNetwork.getServer(this) + "/profile_"+friendNicks[i]+".png";
 			View iv = ConversationView.getImageView(this, path, size, 0);
 			CheckBox c = new CheckBox(getBaseContext());
 			TextView tv = new TextView(this);
