@@ -124,6 +124,17 @@ public class BlaNetwork extends Service implements Runnable {
 		return instance;
 	}
 
+    boolean login = false;
+    public void onLogin() {
+        login = true;
+    }
+    public void doneLogin() {
+        login = false;
+    }
+    public boolean isLogin() {
+        return login;
+    }
+
 	@Override
 	public void run() {
 		UpdateApp updater = new UpdateApp();
@@ -514,13 +525,7 @@ public class BlaNetwork extends Service implements Runnable {
 		}
 		
 		if (nick == null || pw == null) {
-			if ((parent != this) && (parent != null)) {
-				Intent intent = new Intent(parent.getApplicationContext(),
-						Login.class);
-				parent.startActivity(intent);
-			}
-			Log.d("BlaNetwork", "Waiting for user input!");
-			return true;
+			return false;
 		} else {
 			id = getNetworkId();
 			if ((id == null || id.equals("REJECTED") || id.equals(""))) {
@@ -562,12 +567,7 @@ public class BlaNetwork extends Service implements Runnable {
 
 		if (id == null || id.equals("ERROR") || id.equals("REJECTED") || id.equals("")) {
 			// The logindata must have been wrong. Refill form.
-			id = null;		
-			if ((activity != this) && (activity != null)) {
-				Intent intent = new Intent(activity.getApplicationContext(),
-						Login.class);
-				activity.startActivity(intent);
-			}
+			id = null;
 			return false;
 		} else {
 			SharedPreferences app_preferences = PreferenceManager

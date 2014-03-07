@@ -39,6 +39,11 @@ public class LoginNetworkThread extends Thread {
 				}
 				if (i == 2) {
 					Log.d("LoginNetworkThread", "Login failed completly.");
+                    if ((activity != null && activity != BlaNetwork.getInstance())) {
+                        Intent intent = new Intent(activity.getApplicationContext(),
+                                Login.class);
+                        activity.startActivity(intent);
+                    }
 					return;
 				}
 			}
@@ -54,6 +59,11 @@ public class LoginNetworkThread extends Thread {
 				}
 				if (i == 2) {
 					Log.d("LoginNetworkThread", "Login failed completly. (with parameters)");
+                    if ((activity != null && activity != BlaNetwork.getInstance())) {
+                        Intent intent = new Intent(activity.getApplicationContext(),
+                                Login.class);
+                        activity.startActivity(intent);
+                    }
 					return;
 				}
 			}
