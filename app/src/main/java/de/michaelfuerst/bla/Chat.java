@@ -13,12 +13,15 @@ import android.app.AlertDialog;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -76,18 +79,43 @@ public class Chat extends Activity {
 
 		final Chat parent = this;
 		ImageView img = (ImageView) findViewById(R.id.imageView1);
+
+        final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        final EditText editText = (EditText) findViewById(R.id.editText1);
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean handled = false;
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    String message = editText.getText().toString();
+
+                    imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+
+                    if (!message.equals("")) {
+                        editText.setText("");
+                        new SendMessageThread(parent, message, nick).start();
+                        insertMessage(message);
+                    }
+
+                    handled = true;
+                }
+                return handled;
+            }
+        });
+
 		img.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				String message = ((EditText) findViewById(R.id.editText1))
-						.getText().toString();
-				Log.d("debug", message);
+				String message = editText.getText().toString();
+
+                imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+
 				if (!message.equals("")) {
-					((EditText) findViewById(R.id.editText1)).setText("");
+					editText.setText("");
 					new SendMessageThread(parent, message, nick).start();
 					insertMessage(message);
 				}
-			}
+            }
 		});
 
 		// Show the Up button in the action bar.

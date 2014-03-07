@@ -809,7 +809,7 @@ public class BlaNetwork extends Service implements Runnable {
 		} else {
 			notification.sound = null;
 		}
-		if (preferences.getBoolean("notifications_new_message_vibrate", true)) {
+		if (!preferences.getBoolean("notifications_new_message_vibrate", true)) {
 			long[] pattern = {};
 			notification.vibrate = pattern;
 		} else {
