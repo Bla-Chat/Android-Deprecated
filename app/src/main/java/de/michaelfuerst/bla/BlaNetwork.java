@@ -262,11 +262,12 @@ public class BlaNetwork extends Service implements Runnable {
 	/**
 	 * Called when an event is received in the message loop.
 	 * 
-	 * @param message
+	 * @param text
 	 *            The message that was received.
 	 * @param conversation
 	 *            The conversation for which it was.
-	 * @param text
+	 * @param trigger
+     *            The person who triggered the event.
 	 */
 	private void onReceiveMessage(String trigger, String conversation,
 			String text) {
@@ -437,9 +438,7 @@ public class BlaNetwork extends Service implements Runnable {
 
 	/**
 	 * Rename a conversation
-	 * 
-	 * @param conversation
-	 *            The conversation to rename.
+	 *
 	 * @param name
 	 *            The new name.
 	 */
@@ -648,7 +647,7 @@ public class BlaNetwork extends Service implements Runnable {
 	/**
 	 * Get a chat history.
 	 * 
-	 * @param id
+	 * @param conversation The conversation which to retrieve.
 	 *            The id of the chat.
 	 * @return The chat history at the given id.
 	 */
