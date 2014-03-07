@@ -156,41 +156,6 @@ public class Conversations extends Activity implements MessageListener {
 					});
 			alert.show();
 			return true;
-		} else if (itemId == R.id.action_setName) {
-			AlertDialog.Builder alert2 = new AlertDialog.Builder(this);
-			alert2.setTitle("Change Name");
-			alert2.setMessage("Enter your new name.");
-			// Set an EditText view to get user input
-			final EditText input2 = new EditText(this);
-			alert2.setView(input2);
-			alert2.setPositiveButton("Ok",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog,
-								int whichButton) {
-							final String value = input2.getText().toString();
-							if (networkAdapter != null) {
-								new AsyncTask<Void, Void, Void>() {
-									@Override
-									public Void doInBackground(Void... params) {
-										networkAdapter.renameSelf(value);
-										return null;
-									}
-								}.execute();
-								Toast.makeText(parent, "Rename " + value,
-										Toast.LENGTH_SHORT).show();
-							}
-						}
-					});
-			alert2.setNegativeButton("Cancel",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog,
-								int whichButton) {
-							Toast.makeText(parent, "Canceled",
-									Toast.LENGTH_SHORT).show();
-						}
-					});
-			alert2.show();
-			return true;
 		} else if (itemId == R.id.action_setProfileImage) {
 			Intent pickIntent = new Intent();
 			pickIntent.setType("image/*");
@@ -208,7 +173,12 @@ public class Conversations extends Activity implements MessageListener {
 		} else if (itemId == R.id.action_newConversation) {
 			startActivity(new Intent(this, ChatCreator.class));
 			return true;
-		}
+		} else if (itemId == R.id.action_settings) {
+            Intent intent = new Intent(getApplicationContext(),
+                    SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
 		return super.onOptionsItemSelected(item);
 	}
 

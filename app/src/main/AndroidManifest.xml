@@ -81,6 +81,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="de.michaelfuerst.hangout.Conversations" />
         </activity>
+        <activity
+            android:name="de.michaelfuerst.bla.SettingsActivity"
+            android:label="@string/title_activity_settings" >
+        </activity>
     </application>
 
 </manifest>

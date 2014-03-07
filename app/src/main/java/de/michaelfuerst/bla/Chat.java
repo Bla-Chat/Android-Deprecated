@@ -463,12 +463,17 @@ public class Chat extends Activity {
 			startActivityForResult(chooserIntent2, IMAGE_RESULT);
 			return true;
 		} else if (itemId == R.id.action_addVideo) {
-			Toast.makeText(this, "Upcoming feature", Toast.LENGTH_SHORT).show();
-			// startActivityForResult(new
-			// Intent(MediaStore.ACTION_VIDEO_CAPTURE),
-			// VIDEO_RESULT);
-			return true;
-		} else if (itemId == R.id.action_rename) {
+            Toast.makeText(this, "Upcoming feature", Toast.LENGTH_SHORT).show();
+            // startActivityForResult(new
+            // Intent(MediaStore.ACTION_VIDEO_CAPTURE),
+            // VIDEO_RESULT);
+            return true;
+        } else if (itemId == R.id.action_settings) {
+            Intent intent = new Intent(getApplicationContext(),
+                    SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (itemId == R.id.action_rename) {
 			AlertDialog.Builder alert = new AlertDialog.Builder(this);
 			alert.setTitle("Rename Conversation");
 			alert.setMessage("The new name for your conversation");

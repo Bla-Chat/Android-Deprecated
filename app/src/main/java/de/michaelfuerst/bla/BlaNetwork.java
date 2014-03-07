@@ -188,6 +188,10 @@ public class BlaNetwork extends Service implements Runnable {
 				status = 3000; // 5 minute lock
 			}
 
+            int syncFrequency = Integer.parseInt(app_preferences.getString("sync_frequency", "2"));
+            int tmpstatus = (int) (status * syncFrequency / 2.0);
+
+            if (syncFrequency > 0) {
 			String jsonString = "{\"type\":\"onEvent\", \"msg\":{\"user\":\""
 					+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \""
 					+ id + "\"}}";
@@ -203,9 +207,12 @@ public class BlaNetwork extends Service implements Runnable {
 			} catch (JSONException e1) {
 				e1.printStackTrace();
 			}
+            } else {
+                tmpstatus = status;
+            }
 
 			try {
-				Thread.sleep(delay);
+				Thread.sleep(tmpstatus);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -760,7 +767,11 @@ public class BlaNetwork extends Service implements Runnable {
 	@SuppressWarnings("deprecation")
 	private void displayNotification(String conversation, String name,
 			String text, boolean vibrate) {
-		final Notification notification = new Notification(
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		if (!preferences.getBoolean("notifications_new_message", true)) {
+            return;
+        }
+        final Notification notification = new Notification(
 				R.drawable.ic_launcher, text, System.currentTimeMillis());
 
 		PendingIntent resultIntent;
@@ -789,7 +800,7 @@ public class BlaNetwork extends Service implements Runnable {
 		} else {
 			notification.sound = null;
 		}
-		if (!vibrate) {
+		if (preferences.getBoolean("notifications_new_message_vibrate", true)) {
 			long[] pattern = {};
 			notification.vibrate = pattern;
 		} else {
