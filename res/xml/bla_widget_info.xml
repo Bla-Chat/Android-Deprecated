@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:initialLayout="@layout/bla_widget"
-    android:minHeight="36dp"
-    android:minWidth="294dp"
-    android:updatePeriodMillis="1000"
-    android:widgetCategory="keyguard|home_screen" >
-
-</appwidget-provider>
