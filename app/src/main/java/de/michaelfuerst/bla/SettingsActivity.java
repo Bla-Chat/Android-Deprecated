@@ -1,18 +1,23 @@
 package de.michaelfuerst.bla;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -20,9 +25,12 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
+import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -44,6 +52,10 @@ public class SettingsActivity extends PreferenceActivity {
      * shown on tablets.
      */
     private static final boolean ALWAYS_SIMPLE_PREFS = false;
+
+    private static final int IMAGE_RESULT = 0;
+    private static String tmp_image = Environment.getExternalStorageDirectory()
+            + "/Pictures/BlaChat/tmp.png";
 
 
     @Override
@@ -70,6 +82,107 @@ public class SettingsActivity extends PreferenceActivity {
                 return true;
             }
         });
+        Preference button2 = (Preference)findPreference("sync_profile_img");
+        button2.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference arg0) {
+
+                Intent pickIntent = new Intent();
+                pickIntent.setType("image/*");
+                pickIntent.setAction(Intent.ACTION_GET_CONTENT);
+                Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(new File(tmp_image)));
+                String pickTitle = "Select or take a new Picture"; // Or get from
+                // strings.xml
+                Intent chooserIntent = Intent.createChooser(pickIntent, pickTitle);
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
+                        new Intent[] { takePhotoIntent });
+                startActivityForResult(chooserIntent, IMAGE_RESULT);
+
+                return true;
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == IMAGE_RESULT) {
+            if (resultCode == Activity.RESULT_OK) {
+                if (data != null && data.getData() != null) {
+                    final SettingsActivity that = this;
+                    Uri _uri = data.getData();
+
+                    // User had pick an image.
+                    Cursor cursor = getContentResolver()
+                            .query(_uri,
+                                    new String[] { android.provider.MediaStore.Images.ImageColumns.DATA },
+                                    null, null, null);
+                    cursor.moveToFirst();
+
+                    // Link to the image
+                    String tmp = cursor.getString(0);
+                    if (tmp == null) {
+                        tmp = Utils.getUriAdv(this, data);
+                    }
+                    final String imageFilePath = tmp;
+                    cursor.close();
+
+                    Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
+                            .show();
+                    Log.d("Chat", "Starting image upload");
+                    new AsyncTask<Void, Void, Void>() {
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            BitmapFactory.Options options = new BitmapFactory.Options();
+                            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                            options.inSampleSize = 2;
+                            Bitmap bmp = BitmapFactory.decodeFile(
+                                    imageFilePath, options);
+                            if (bmp != null) {
+                                BlaNetwork.getInstance().setImage(bmp);
+                            }
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(Void v) {
+                            Toast.makeText(that, "Uploaded image",
+                                    Toast.LENGTH_LONG).show();
+                            Log.d("Settings", "Done image upload");
+                        }
+                    }.execute();
+                } else {
+                    final String imageFilePath = tmp_image;
+                    Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
+                            .show();
+                    final SettingsActivity that = this;
+                    Log.d("Settings", "Starting image upload");
+                    new AsyncTask<Void, Void, Void>() {
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            BitmapFactory.Options options = new BitmapFactory.Options();
+                            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                            options.inSampleSize = 2;
+                            Bitmap bmp = BitmapFactory.decodeFile(
+                                    imageFilePath, options);
+                            if (bmp != null) {
+                                BlaNetwork.getInstance().setImage(bmp);
+                            }
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(Void v) {
+                            Toast.makeText(that, "Uploaded image",
+                                    Toast.LENGTH_LONG).show();
+                            Log.d("Settings", "Done image upload");
+                        }
+                    }.execute();
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     /**

@@ -432,6 +432,7 @@ public class Chat extends Activity {
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
 		} else if (itemId == R.id.action_addImage) {
+            isSetImage = false;
 			Intent pickIntent = new Intent();
 			pickIntent.setType("image/*");
 			pickIntent.setAction(Intent.ACTION_GET_CONTENT);
@@ -462,13 +463,13 @@ public class Chat extends Activity {
 					new Intent[] { takePhotoIntent2 });
 			startActivityForResult(chooserIntent2, IMAGE_RESULT);
 			return true;
-		} else if (itemId == R.id.action_addVideo) {
+		}/* else if (itemId == R.id.action_addVideo) {
             Toast.makeText(this, "Upcoming feature", Toast.LENGTH_SHORT).show();
             // startActivityForResult(new
             // Intent(MediaStore.ACTION_VIDEO_CAPTURE),
             // VIDEO_RESULT);
             return true;
-        } else if (itemId == R.id.action_settings) {
+        }*/ else if (itemId == R.id.action_settings) {
             Intent intent = new Intent(getApplicationContext(),
                     SettingsActivity.class);
             startActivity(intent);
@@ -494,8 +495,8 @@ public class Chat extends Activity {
 										return null;
 									}
 								}.execute();
-								Toast.makeText(parent, "Renamed " + value,
-										Toast.LENGTH_SHORT).show();
+                                name = value;
+                                setTitle(name);
 							} else {
 								Toast.makeText(parent, "Error cannot rename.",
 										Toast.LENGTH_SHORT).show();
@@ -533,12 +534,15 @@ public class Chat extends Activity {
 					cursor.moveToFirst();
 
 					// Link to the image
-					final String imageFilePath = cursor.getString(0);
+                    String tmp = cursor.getString(0);
+                    if (tmp == null) {
+                        tmp = Utils.getUriAdv(this, data);
+                    }
+					final String imageFilePath = tmp;
 					cursor.close();
 
-					Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
+					Toast.makeText(this, "Uploading image " + imageFilePath, Toast.LENGTH_LONG)
 							.show();
-					Log.d("Chat", "Starting image upload");
 					if (!isSetImage) {
 						insertMessage("#image " + imageFilePath);
 					}
@@ -565,7 +569,6 @@ public class Chat extends Activity {
 						protected void onPostExecute(Void v) {
 							Toast.makeText(that, "Uploaded image",
 									Toast.LENGTH_LONG).show();
-							Log.d("Chat", "Done image upload");
 						}
 					}.execute();
 				} else {
@@ -573,7 +576,6 @@ public class Chat extends Activity {
 					Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
 							.show();
 					final Chat that = this;
-					Log.d("Chat", "Starting image upload");
 					if (!isSetImage) {
 						insertMessage("#image " + imageFilePath);
 					}
@@ -600,7 +602,6 @@ public class Chat extends Activity {
 						protected void onPostExecute(Void v) {
 							Toast.makeText(that, "Uploaded image",
 									Toast.LENGTH_LONG).show();
-							Log.d("Chat", "Done image upload");
 						}
 					}.execute();
 				}

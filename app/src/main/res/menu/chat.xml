@@ -10,11 +10,11 @@
         android:showAsAction="never"
         android:title="@string/action_addImage">
     </item>
-    <item
+    <!--<item
         android:id="@+id/action_addVideo"
         android:showAsAction="never"
         android:title="@string/action_addVideo">
-    </item>
+    </item>-->
     <item
         android:id="@+id/action_rename"
         android:title="Rename Conversation"

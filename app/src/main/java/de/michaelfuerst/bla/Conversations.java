@@ -33,13 +33,10 @@ import android.widget.Toast;
 
 public class Conversations extends Activity implements MessageListener {
 
-	private static final int IMAGE_RESULT = 0;
 	private BlaNetwork networkAdapter = null;
 	boolean waiting = false;
 	private boolean isAlive = false;
 	private final List<ConversationViewData> conversationData = new LinkedList<ConversationViewData>();
-	private static String tmp_image = Environment.getExternalStorageDirectory()
-			+ "/Pictures/BlaChat/tmp.png";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -156,20 +153,6 @@ public class Conversations extends Activity implements MessageListener {
 					});
 			alert.show();
 			return true;
-		} else if (itemId == R.id.action_setProfileImage) {
-			Intent pickIntent = new Intent();
-			pickIntent.setType("image/*");
-			pickIntent.setAction(Intent.ACTION_GET_CONTENT);
-			Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-			takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-					Uri.fromFile(new File(tmp_image)));
-			String pickTitle = "Select or take a new Picture"; // Or get from
-			// strings.xml
-			Intent chooserIntent = Intent.createChooser(pickIntent, pickTitle);
-			chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
-					new Intent[] { takePhotoIntent });
-			startActivityForResult(chooserIntent, IMAGE_RESULT);
-			return true;
 		} else if (itemId == R.id.action_newConversation) {
 			startActivity(new Intent(this, ChatCreator.class));
 			return true;
@@ -180,82 +163,6 @@ public class Conversations extends Activity implements MessageListener {
             return true;
         }
 		return super.onOptionsItemSelected(item);
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == IMAGE_RESULT) {
-			if (resultCode == Activity.RESULT_OK) {
-				if (data != null && data.getData() != null) {
-					final Conversations that = this;
-					Uri _uri = data.getData();
-
-					// User had pick an image.
-					Cursor cursor = getContentResolver()
-							.query(_uri,
-									new String[] { android.provider.MediaStore.Images.ImageColumns.DATA },
-									null, null, null);
-					cursor.moveToFirst();
-
-					// Link to the image
-					final String imageFilePath = cursor.getString(0);
-					cursor.close();
-
-					Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
-							.show();
-					Log.d("Chat", "Starting image upload");
-					new AsyncTask<Void, Void, Void>() {
-						@Override
-						protected Void doInBackground(Void... params) {
-							BitmapFactory.Options options = new BitmapFactory.Options();
-							options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-							options.inSampleSize = 2;
-							Bitmap bmp = BitmapFactory.decodeFile(
-									imageFilePath, options);
-							if (bmp != null) {
-								networkAdapter.setImage(bmp);
-							}
-							return null;
-						}
-
-						@Override
-						protected void onPostExecute(Void v) {
-							Toast.makeText(that, "Uploaded image",
-									Toast.LENGTH_LONG).show();
-							Log.d("Chat", "Done image upload");
-						}
-					}.execute();
-				} else {
-					final String imageFilePath = tmp_image;
-					Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
-							.show();
-					final Conversations that = this;
-					Log.d("Chat", "Starting image upload");
-					new AsyncTask<Void, Void, Void>() {
-						@Override
-						protected Void doInBackground(Void... params) {
-							BitmapFactory.Options options = new BitmapFactory.Options();
-							options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-							options.inSampleSize = 2;
-							Bitmap bmp = BitmapFactory.decodeFile(
-									imageFilePath, options);
-							if (bmp != null) {
-								networkAdapter.setImage(bmp);
-							}
-							return null;
-						}
-
-						@Override
-						protected void onPostExecute(Void v) {
-							Toast.makeText(that, "Uploaded image",
-									Toast.LENGTH_LONG).show();
-							Log.d("Chat", "Done image upload");
-						}
-					}.execute();
-				}
-			}
-		}
-		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 	@Override

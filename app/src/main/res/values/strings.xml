@@ -15,6 +15,6 @@
     <string name="title_activity_chat_creator">New Chat</string>
     <string name="action_setName">Set Name</string>
     <string name="action_setProfileImage">Set Profile Image</string>
-    <string name="action_setImage">Set Image</string>
+    <string name="action_setImage">Set Image (global)</string>
 
 </resources>

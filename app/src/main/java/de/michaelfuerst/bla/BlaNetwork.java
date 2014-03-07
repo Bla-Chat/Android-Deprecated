@@ -444,10 +444,10 @@ public class BlaNetwork extends Service implements Runnable {
 	}
 
 	/**
-	 * Rename a conversation
+	 * Add someone as a friend of you.
 	 *
 	 * @param name
-	 *            The new name.
+	 *            The nick name of your friend.
 	 */
 	public String friend(String name) {
 		if (!isActive()) {
@@ -462,10 +462,19 @@ public class BlaNetwork extends Service implements Runnable {
 				}
 			}
 		}
+
 		String jsonString = "{\"type\":\"onAddFriend\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
 				+ "\" , \"name\": \"" + name + "\"}}";
-		return submit(jsonString, BLA_SERVER);
+
+        String result = submit(jsonString, BLA_SERVER);
+
+        // Update contacts before we leave.
+        contactNames = null;
+        contactNicks = null;
+        updateContacts();
+
+		return result;
 	}
 
 	/**
@@ -1237,12 +1246,7 @@ public class BlaNetwork extends Service implements Runnable {
 				}.start();
 			}
 		} else {
-			new Thread() {
-				@Override
-				public void run() {
-					updateContacts();
-				}
-			}.start();
+            updateContacts();
 		}
 		return contactNames;
 	}
