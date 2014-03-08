@@ -12,11 +12,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -39,7 +34,6 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 	private boolean needsUpdate(String server) {
 		try {
 			// Create a new HttpClient and Post Header
-			HttpClient httpclient = new DefaultHttpClient();
             Log.d("UpdateApp", server + "/version.txt");
             HttpURLConnection conn = (HttpURLConnection)new URL(server + "/version.txt").openConnection();
             conn.setDoInput(true);

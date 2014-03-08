@@ -112,7 +112,7 @@ public class SettingsActivity extends PreferenceActivity {
         }
 
         @SuppressWarnings("deprecation")
-        Preference server = (Preference) findPreference("bla_server");
+        Preference server = findPreference("bla_server");
         if (server != null) {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
             String serverStr = preferences.getString("bla_server", BlaNetwork.DEFAULT_BLA_SERVER);
@@ -120,7 +120,7 @@ public class SettingsActivity extends PreferenceActivity {
         }
 
         @SuppressWarnings("deprecation")
-        Preference version = (Preference) findPreference("bla_version");
+        Preference version = findPreference("bla_version");
         if (version != null) {
             version.setSummary(UpdateApp.VERSION);
         }

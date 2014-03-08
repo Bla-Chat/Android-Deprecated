@@ -35,7 +35,7 @@ public class LocalResourceManager {
 		usages[i].put(key, value);
 	}
 
-	public static void decPriority(String key, int i) {
+	/*public static void decPriority(String key, int i) {
 		if (usages[i] == null) {
 			usages[i] = new HashMap<String, Integer>();
 		}
@@ -54,14 +54,14 @@ public class LocalResourceManager {
 		}
 	}
 
-	public static void decPriority(int i) {
+	/*public static void decPriority(int i) {
 		if (usages[i] == null) {
 			usages[i] = new HashMap<String, Integer>();
 		}
 		for (String k : usages[i].keySet()) {
 			decPriority(k, i);
 		}
-	}
+	}*/
 
 	@SuppressWarnings("deprecation")
 	public static Drawable getDrawable(Context ctx, final String path,
@@ -83,7 +83,7 @@ public class LocalResourceManager {
 			File sysPath = new File(Environment.getExternalStorageDirectory()
 					+ "/Pictures/BlaChat");
 			if (!sysPath.exists()) {
-				sysPath.mkdirs();
+				if(!sysPath.mkdirs()) return null;
 			}
 			if (!new File(filename).exists()) {
 				if (BlaNetwork.getInstance() == null
@@ -107,9 +107,9 @@ public class LocalResourceManager {
 								bitmap.recycle();
 								fetchQueue.remove(path);
 							} catch (MalformedURLException e) {
-								return;
+                                Log.d("LocalResourceManager", "invalid url" + path);
 							} catch (IOException e) {
-								return;
+								Log.d("LocalResourceManager", "connection unstable");
 							}
 						}
 					}.start();
