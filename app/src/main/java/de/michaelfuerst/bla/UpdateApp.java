@@ -29,8 +29,8 @@ import android.util.Log;
  * 
  */
 public class UpdateApp extends AsyncTask<String, Void, Void> {
-	//private static final String VERSION = "1.1.0.3";
-	private static final String VERSION = "dev";
+	//private static final String VERSION = "1.2.0.0";
+	private static final String VERSION = "0.0.0.0";
 	private Context context;
 
 	public void setContext(Context contextf) {
@@ -50,8 +50,11 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 					new InputStreamReader(response.getEntity().getContent()));
 
 			String next;
+
+            int end = VERSION.lastIndexOf(".");
+            String majorVersion = VERSION.substring(0, end);
 			while ((next = bufferedReader.readLine()) != null) {
-				if (next.equals(VERSION)) {
+				if (next.equals(majorVersion)) {
 					return false;
 				}
 			}
@@ -70,7 +73,7 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 				return null;
 			}
 			Log.d("Updater", "Updating!");
-			URL url = new URL(arg0[0]+arg0[1]);
+			URL url = new URL(arg0[1]);
 			HttpURLConnection c = (HttpURLConnection) url.openConnection();
 			c.setRequestMethod("GET");
 			c.setDoOutput(true);

@@ -102,21 +102,6 @@ public class BlaNetwork extends Service implements Runnable {
         return server + separator + "api";
     }
 
-    /**
-     * Get the update server for bla.
-     *
-     * By forcing all endusers to the most recent version of bla admins are forced to update the servers.
-     *
-     * @return The update server for bla.
-     */
-    public String getUpdateServer() {
-        String separator = "";
-        if (!DEFAULT_BLA_SERVER.endsWith("/")) {
-            separator = "/";
-        }
-        return DEFAULT_BLA_SERVER + separator + "api";
-    }
-
     public void setActiveConversation(String newConversation) {
 		activeConversation = newConversation;
 	}
@@ -184,7 +169,7 @@ public class BlaNetwork extends Service implements Runnable {
 
 		UpdateApp updater = new UpdateApp();
 		updater.setContext(getApplicationContext());
-		updater.execute(getUpdateServer(), "/bla.apk");
+		updater.execute("https://raw.github.com/penguinmenac3/BlaChat/master/app", "https://github.com/penguinmenac3/BlaChat/blob/master/app/bla.apk?raw=true");
 		try {
 			runService();
 		} catch (NullPointerException e) {
