@@ -84,24 +84,26 @@ public final class R {
         public static final int error_invalid_password=0x7f070012;
         public static final int hello_world=0x7f070013;
         public static final int login_progress_signing_in=0x7f070014;
-        public static final int pref_default_display_name=0x7f070015;
-        public static final int pref_header_data_sync=0x7f070016;
-        public static final int pref_header_general=0x7f070017;
-        public static final int pref_header_notifications=0x7f070018;
-        public static final int pref_ringtone_silent=0x7f070019;
-        public static final int pref_title_display_name=0x7f07001a;
-        public static final int pref_title_logout=0x7f07001b;
-        public static final int pref_title_new_message_notifications=0x7f07001c;
-        public static final int pref_title_profile_img=0x7f07001d;
-        public static final int pref_title_ringtone=0x7f07001e;
-        public static final int pref_title_sync_frequency=0x7f07001f;
-        public static final int pref_title_vibrate=0x7f070020;
-        public static final int prompt_email=0x7f070021;
-        public static final int prompt_password=0x7f070022;
-        public static final int title_activity_chat=0x7f070023;
-        public static final int title_activity_chat_creator=0x7f070024;
-        public static final int title_activity_login=0x7f070025;
-        public static final int title_activity_settings=0x7f070026;
+        public static final int pref_default_bla_server=0x7f070015;
+        public static final int pref_default_display_name=0x7f070016;
+        public static final int pref_header_data_sync=0x7f070017;
+        public static final int pref_header_general=0x7f070018;
+        public static final int pref_header_notifications=0x7f070019;
+        public static final int pref_ringtone_silent=0x7f07001a;
+        public static final int pref_title_bla_server=0x7f07001b;
+        public static final int pref_title_display_name=0x7f07001c;
+        public static final int pref_title_logout=0x7f07001d;
+        public static final int pref_title_new_message_notifications=0x7f07001e;
+        public static final int pref_title_profile_img=0x7f07001f;
+        public static final int pref_title_ringtone=0x7f070020;
+        public static final int pref_title_sync_frequency=0x7f070021;
+        public static final int pref_title_vibrate=0x7f070022;
+        public static final int prompt_email=0x7f070023;
+        public static final int prompt_password=0x7f070024;
+        public static final int title_activity_chat=0x7f070025;
+        public static final int title_activity_chat_creator=0x7f070026;
+        public static final int title_activity_login=0x7f070027;
+        public static final int title_activity_settings=0x7f070028;
     }
     public static final class style {
         /** 
