@@ -29,8 +29,7 @@ import android.util.Log;
  * 
  */
 public class UpdateApp extends AsyncTask<String, Void, Void> {
-	//private static final String VERSION = "1.2.0.0";
-	private static final String VERSION = "0.0.0.0";
+	public static final String VERSION = "1.2.1.0";
 	private Context context;
 
 	public void setContext(Context contextf) {
@@ -41,20 +40,25 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 		try {
 			// Create a new HttpClient and Post Header
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpPost httppost = new HttpPost(server + "/version.txt");
+            Log.d("UpdateApp", server + "/version.txt");
+            HttpURLConnection conn = (HttpURLConnection)new URL(server + "/version.txt").openConnection();
+            conn.setDoInput(true);
+            conn.setConnectTimeout(10000); // timeout 10 secs
+            conn.connect();
 
-			// Execute HTTP Post Request
-			HttpResponse response = httpclient.execute(httppost);
-
-			BufferedReader bufferedReader = new BufferedReader(
-					new InputStreamReader(response.getEntity().getContent()));
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
 			String next;
 
             int end = VERSION.lastIndexOf(".");
             String majorVersion = VERSION.substring(0, end);
 			while ((next = bufferedReader.readLine()) != null) {
-				if (next.equals(majorVersion)) {
+                if (next.contains("Page not found")) {
+                    Log.d("UpdateApp", "Page not found error!");
+                    return false;
+                }
+				if (next.startsWith(majorVersion)) {
+                    Log.d("UpdateApp", "Found valid major version " + next);
 					return false;
 				}
 			}
@@ -69,10 +73,9 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 	protected Void doInBackground(String... arg0) {
 		try {
 			if (!needsUpdate(arg0[0])) {
-				Log.d("Updater", "Skipping update already up to date!");
 				return null;
 			}
-			Log.d("Updater", "Updating!");
+			Log.d("UpdateApp", "Updating!");
 			URL url = new URL(arg0[1]);
 			HttpURLConnection c = (HttpURLConnection) url.openConnection();
 			c.setRequestMethod("GET");
@@ -108,7 +111,7 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 			context.startActivity(intent);
 
 		} catch (Exception e) {
-			Log.e("UpdateAPP", "Update error! " + e.getMessage());
+			Log.e("UpdateApp", "Update error! " + e.getMessage());
 		}
 		return null;
 	}

@@ -118,6 +118,12 @@ public class SettingsActivity extends PreferenceActivity {
             String serverStr = preferences.getString("bla_server", BlaNetwork.DEFAULT_BLA_SERVER);
             server.setSummary(serverStr);
         }
+
+        @SuppressWarnings("deprecation")
+        Preference version = (Preference) findPreference("bla_version");
+        if (version != null) {
+            version.setSummary(UpdateApp.VERSION);
+        }
     }
 
     @Override
@@ -334,7 +340,9 @@ public class SettingsActivity extends PreferenceActivity {
                         new AsyncTask<Void, Void, Void>() {
                             @Override
                             public Void doInBackground(Void... params) {
-                                networkAdapter.renameSelf(stringValue);
+                                if (!stringValue.equals("current name")) {
+                                    networkAdapter.renameSelf(stringValue);
+                                }
                                 return null;
                             }
                         }.execute();

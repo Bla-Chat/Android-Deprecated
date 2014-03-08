@@ -91,19 +91,20 @@ public final class R {
         public static final int pref_header_notifications=0x7f070019;
         public static final int pref_ringtone_silent=0x7f07001a;
         public static final int pref_title_bla_server=0x7f07001b;
-        public static final int pref_title_display_name=0x7f07001c;
-        public static final int pref_title_logout=0x7f07001d;
-        public static final int pref_title_new_message_notifications=0x7f07001e;
-        public static final int pref_title_profile_img=0x7f07001f;
-        public static final int pref_title_ringtone=0x7f070020;
-        public static final int pref_title_sync_frequency=0x7f070021;
-        public static final int pref_title_vibrate=0x7f070022;
-        public static final int prompt_email=0x7f070023;
-        public static final int prompt_password=0x7f070024;
-        public static final int title_activity_chat=0x7f070025;
-        public static final int title_activity_chat_creator=0x7f070026;
-        public static final int title_activity_login=0x7f070027;
-        public static final int title_activity_settings=0x7f070028;
+        public static final int pref_title_bla_version=0x7f07001c;
+        public static final int pref_title_display_name=0x7f07001d;
+        public static final int pref_title_logout=0x7f07001e;
+        public static final int pref_title_new_message_notifications=0x7f07001f;
+        public static final int pref_title_profile_img=0x7f070020;
+        public static final int pref_title_ringtone=0x7f070021;
+        public static final int pref_title_sync_frequency=0x7f070022;
+        public static final int pref_title_vibrate=0x7f070023;
+        public static final int prompt_email=0x7f070024;
+        public static final int prompt_password=0x7f070025;
+        public static final int title_activity_chat=0x7f070026;
+        public static final int title_activity_chat_creator=0x7f070027;
+        public static final int title_activity_login=0x7f070028;
+        public static final int title_activity_settings=0x7f070029;
     }
     public static final class style {
         /** 

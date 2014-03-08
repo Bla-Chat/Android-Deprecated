@@ -9,6 +9,8 @@
     <string name="pref_title_display_name">Display name</string>
     <string name="pref_default_display_name">current name</string>
 
+    <string name="pref_title_bla_version">Version</string>
+
     <string name="pref_title_bla_server">Bla Server</string>
     <string name="pref_default_bla_server">https://www.ssl-id.de/bla.f-online.net</string>
 
