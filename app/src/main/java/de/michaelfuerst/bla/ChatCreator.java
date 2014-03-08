@@ -2,8 +2,6 @@ package de.michaelfuerst.bla;
 
 import java.util.LinkedList;
 
-import de.michaelfuerst.bla.R;
-
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
@@ -45,10 +43,13 @@ public class ChatCreator extends Activity {
 				LinearLayout ll = (LinearLayout) findViewById(R.id.chatPartnerList);
 				final LinkedList<String> participants = new LinkedList<String>();
 				for (int i = 0; i < ll.getChildCount()/2; i++) {
-					CheckBox c = (CheckBox) ((LinearLayout) ll.getChildAt(2*i)).getChildAt(0);
-					if (c.isChecked()) {
-						participants.add(friendNicks[i]);
-					}
+                    LinearLayout tmp = (LinearLayout) ll.getChildAt(2*i);
+                    if (tmp != null) {
+					    CheckBox c = (CheckBox) tmp.getChildAt(0);
+					    if (c != null && c.isChecked()) {
+					    	participants.add(friendNicks[i]);
+					    }
+                    }
 				}
 				participants.add(BlaNetwork.getUser(that));
 				new Thread() {
@@ -104,7 +105,7 @@ public class ChatCreator extends Activity {
 	 */
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	private void setupActionBar() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && getActionBar() != null) {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
 	}

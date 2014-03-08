@@ -1,7 +1,6 @@
 package de.michaelfuerst.bla;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -9,7 +8,10 @@ import android.os.Environment;
 import android.provider.MediaStore;
 
 /**
- * Created by michael on 07.03.14.
+ * A utility calss for special android methods.
+ *
+ * @author Michael Fürst
+ * @version 1.0
  */
 public class Utils {
     private static Uri getUri() {
@@ -23,15 +25,20 @@ public class Utils {
     public static String getUriAdv(Activity context, Intent data) {
         Uri originalUri = data.getData();
 
-        String id = originalUri.getLastPathSegment().split(":")[1];
+        if (originalUri == null) return null;
+        String lastSegment = originalUri.getLastPathSegment();
+
+        if (lastSegment == null) return null;
+        String id = lastSegment.split(":")[1];
+
         final String[] imageColumns = {MediaStore.Images.Media.DATA };
-        final String imageOrderBy = null;
 
         Uri uri = getUri();
         String selectedImagePath = null;
 
+        @SuppressWarnings("deprecation")
         Cursor imageCursor = context.managedQuery(uri, imageColumns,
-                MediaStore.Images.Media._ID + "=" + id, null, imageOrderBy);
+                MediaStore.Images.Media._ID + "=" + id, null, null);
 
         if (imageCursor.moveToFirst()) {
             selectedImagePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));

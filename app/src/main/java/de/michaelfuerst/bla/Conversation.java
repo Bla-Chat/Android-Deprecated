@@ -8,6 +8,6 @@ package de.michaelfuerst.bla;
  * 
  */
 public class Conversation {
-	public String nick;
+	//public String nick;
 	public String name;
 }

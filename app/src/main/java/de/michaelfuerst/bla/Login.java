@@ -1,22 +1,19 @@
 package de.michaelfuerst.bla;
 
-import de.michaelfuerst.bla.R;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewPropertyAnimator;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * Activity which displays a login screen to the user, offering registration as
@@ -24,14 +21,8 @@ import android.widget.Toast;
  */
 public class Login extends Activity {
 
-	/**
-	 * The default email to populate the email field with.
-	 */
-	public static final String EXTRA_EMAIL = "com.example.android.authenticatordemo.extra.EMAIL";
-
 	// Values for email and password at the time of the login attempt.
 	private String mEmail;
-	private String mPassword;
 
 	// UI references.
 	private EditText mEmailView;
@@ -47,7 +38,7 @@ public class Login extends Activity {
 		setContentView(R.layout.activity_login);
 
 		// Set up the login form.
-		mEmail = getIntent().getStringExtra(EXTRA_EMAIL);
+		mEmail = getIntent().getStringExtra(null);
 		mEmailView = (EditText) findViewById(R.id.email);
 		mEmailView.setText(mEmail);
 
@@ -76,17 +67,6 @@ public class Login extends Activity {
 						attemptLogin();
 					}
 				});
-
-		/*
-		 * findViewById(R.id.action_forgot_password).setOnClickListener( new
-		 * View.OnClickListener() {
-		 * 
-		 * @Override public void onClick(View view) { attemptReset(); }
-		 * 
-		 * private void attemptReset() { // TODO Auto-generated method stub
-		 * 
-		 * } });
-		 */
 	}
 
 	@Override
@@ -102,12 +82,15 @@ public class Login extends Activity {
 	 * errors are presented and no actual login attempt is made.
 	 */
 	public void attemptLogin() {
+        String mPassword;
 
 		// Reset errors.
 		mEmailView.setError(null);
 		mPasswordView.setError(null);
 
 		// Store values at the time of the login attempt.
+        if (mEmailView.getText() == null || mPasswordView.getText() == null) return;
+
 		mEmail = mEmailView.getText().toString();
 		mPassword = mPasswordView.getText().toString();
 
@@ -146,15 +129,6 @@ public class Login extends Activity {
 		}
 	}
 
-	public void attemptReset() {
-		Toast.makeText(this, "Unsuported Feature", Toast.LENGTH_LONG).show();
-		/*
-		 * Toast.makeText(this, "Trying to send reset e-mail",
-		 * Toast.LENGTH_LONG).show(); if (HangoutNetwork.getInstance() != null)
-		 * HangoutNetwork.getInstance().send("reset", "system");
-		 */
-	}
-
 	/**
 	 * Shows the progress UI and hides the login form.
 	 */
@@ -168,26 +142,31 @@ public class Login extends Activity {
 					android.R.integer.config_shortAnimTime);
 
 			mLoginStatusView.setVisibility(View.VISIBLE);
-			mLoginStatusView.animate().setDuration(shortAnimTime)
-					.alpha(show ? 1 : 0)
-					.setListener(new AnimatorListenerAdapter() {
+            ViewPropertyAnimator animator = mLoginStatusView.animate();
+            if (animator != null) {
+                animator.setDuration(shortAnimTime);
+                animator.alpha(show ? 1 : 0);
+                animator.setListener(new AnimatorListenerAdapter() {
 						@Override
 						public void onAnimationEnd(Animator animation) {
 							mLoginStatusView.setVisibility(show ? View.VISIBLE
 									: View.GONE);
 						}
 					});
-
+            }
 			mLoginFormView.setVisibility(View.VISIBLE);
-			mLoginFormView.animate().setDuration(shortAnimTime)
-					.alpha(show ? 0 : 1)
-					.setListener(new AnimatorListenerAdapter() {
+            animator = mLoginFormView.animate();
+            if (animator != null) {
+                animator.setDuration(shortAnimTime);
+                animator.alpha(show ? 0 : 1);
+                animator.setListener(new AnimatorListenerAdapter() {
 						@Override
 						public void onAnimationEnd(Animator animation) {
 							mLoginFormView.setVisibility(show ? View.GONE
 									: View.VISIBLE);
 						}
 					});
+            }
 		} else {
 			// The ViewPropertyAnimator APIs are not available, so simply show
 			// and hide the relevant UI components.

@@ -24,6 +24,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 import android.preference.RingtonePreference;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -64,50 +65,60 @@ public class SettingsActivity extends PreferenceActivity {
 
         setupSimplePreferencesScreen();
 
+        @SuppressWarnings("deprecation")
         Preference button = (Preference)findPreference("sync_logout");
-        button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(Preference arg0) {
-                Context context = BlaNetwork.getInstance().getApplicationContext();
-                SharedPreferences settings = PreferenceManager
+        if (button != null) {
+            button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0) {
+                    Context context = BlaNetwork.getInstance().getApplicationContext();
+                    if (context == null) return false;
+                    SharedPreferences settings = PreferenceManager
                         .getDefaultSharedPreferences(context);
-                settings.edit().clear().commit();
+                    settings.edit().clear().commit();
 
-                Intent mStartActivity = new Intent(context, Conversations.class);
-                int mPendingIntentId = 123456;
-                PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId,    mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
-                AlarmManager mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-                mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
-                System.exit(0);
-                return true;
-            }
-        });
+                    Intent mStartActivity = new Intent(context, Conversations.class);
+                    int mPendingIntentId = 123456;
+                    PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId,    mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+                    AlarmManager mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+                    mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+                    System.exit(0);
+                    return true;
+                }
+            });
+        }
+        @SuppressWarnings("deprecation")
         Preference button2 = (Preference)findPreference("sync_profile_img");
-        button2.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(Preference arg0) {
+        if (button2 != null) {
+            button2.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0) {
 
-                Intent pickIntent = new Intent();
-                pickIntent.setType("image/*");
-                pickIntent.setAction(Intent.ACTION_GET_CONTENT);
-                Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                    Intent pickIntent = new Intent();
+                    pickIntent.setType("image/*");
+                    pickIntent.setAction(Intent.ACTION_GET_CONTENT);
+                    Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
                         Uri.fromFile(new File(tmp_image)));
-                String pickTitle = "Select or take a new Picture"; // Or get from
-                // strings.xml
-                Intent chooserIntent = Intent.createChooser(pickIntent, pickTitle);
-                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
+                    String pickTitle = "Select or take a new Picture"; // Or get from
+                    // strings.xml
+                    Intent chooserIntent = Intent.createChooser(pickIntent, pickTitle);
+                    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
                         new Intent[] { takePhotoIntent });
-                startActivityForResult(chooserIntent, IMAGE_RESULT);
+                    startActivityForResult(chooserIntent, IMAGE_RESULT);
 
-                return true;
-            }
-        });
+                    return true;
+                }
+            });
+        }
 
+        @SuppressWarnings("deprecation")
         Preference server = (Preference) findPreference("bla_server");
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String serverStr = preferences.getString("bla_server", BlaNetwork.DEFAULT_BLA_SERVER);
-        server.setSummary(serverStr);
+        if (server != null) {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            String serverStr = preferences.getString("bla_server", BlaNetwork.DEFAULT_BLA_SERVER);
+            server.setSummary(serverStr);
+        }
     }
 
     @Override
@@ -123,6 +134,8 @@ public class SettingsActivity extends PreferenceActivity {
                             .query(_uri,
                                     new String[] { android.provider.MediaStore.Images.ImageColumns.DATA },
                                     null, null, null);
+                    if (cursor == null) return;
+
                     cursor.moveToFirst();
 
                     // Link to the image
@@ -195,10 +208,13 @@ public class SettingsActivity extends PreferenceActivity {
      * device configuration dictates that a simplified, single-pane UI should be
      * shown.
      */
+    @SuppressWarnings("deprecation")
     private void setupSimplePreferencesScreen() {
         if (!isSimplePreferences(this)) {
             return;
         }
+
+        if (getPreferenceScreen()== null) return;
 
         // In the simplified UI, fragments are not used at all and we instead
         // use the older PreferenceActivity APIs.
@@ -278,12 +294,13 @@ public class SettingsActivity extends PreferenceActivity {
                 ListPreference listPreference = (ListPreference) preference;
                 int index = listPreference.findIndexOfValue(stringValue);
 
-                // Set the summary to reflect the new value.
-                preference.setSummary(
+                if (listPreference.getEntries() != null) {
+                    // Set the summary to reflect the new value.
+                    preference.setSummary(
                         index >= 0
                                 ? listPreference.getEntries()[index]
                                 : null);
-
+                }
             } else if (preference instanceof RingtonePreference) {
                 // For ringtone preferences, look up the correct display value
                 // using RingtoneManager.
@@ -310,7 +327,7 @@ public class SettingsActivity extends PreferenceActivity {
                 // For all other preferences, set the summary to the value's
                 // simple string representation.
                 preference.setSummary(stringValue);
-                if (preference.getKey().equals("display_name")) {
+                if (preference.getKey() != null && preference.getKey().equals("display_name")) {
                     final BlaNetwork networkAdapter = BlaNetwork.getInstance();
                     if (networkAdapter != null) {
                         new AsyncTask<Void, Void, Void>() {

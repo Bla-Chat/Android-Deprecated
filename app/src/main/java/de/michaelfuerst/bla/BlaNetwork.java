@@ -46,7 +46,6 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore.Video;
 import android.util.Log;
 
 /**
@@ -77,7 +76,6 @@ public class BlaNetwork extends Service implements Runnable {
 	private boolean isReady = false;
 	private final LinkedList<String> markedConversations;
 	private boolean offline = false;
-	private int ledColor = Color.MAGENTA;
 
     public static void setServer(String server, Context ctx) {
         BlaNetwork.server = server;
@@ -124,9 +122,9 @@ public class BlaNetwork extends Service implements Runnable {
 		activeConversation = newConversation;
 	}
 
-	public String getActiveConversation() {
+	/*public String getActiveConversation() {
 		return activeConversation;
-	}
+	}*/
 
 	/**
 	 * You must not call this, this is only public because the service needs to
@@ -166,19 +164,6 @@ public class BlaNetwork extends Service implements Runnable {
 	public static BlaNetwork getInstance() {
 		return instance;
 	}
-
-    boolean login = false;
-
-    public void onLogin() {
-        login = true;
-    }
-    public void doneLogin() {
-        login = false;
-    }
-
-    public boolean isLogin() {
-        return login;
-    }
 
     public void setReady(boolean value) {
         synchronized (BlaNetwork.class) {
@@ -315,13 +300,17 @@ public class BlaNetwork extends Service implements Runnable {
 		} else if (type.equals("onConversation")) {
 			updateConversations();
 		} else if (type.equals("forceReload")) {
-			requireFileReload(msg);
+			forceReload(msg);
 		} else {
 			Log.d("Network", type + ":" + msg);
 		}
 	}
 
-	private void setStatus(int level) {
+    private void forceReload(String msg) {
+        Log.d("Remove file", "TODO" + msg);
+    }
+
+    private void setStatus(int level) {
 		status = level;
 	}
 
@@ -389,7 +378,7 @@ public class BlaNetwork extends Service implements Runnable {
 			BufferedReader bufferedReader = new BufferedReader(
 					new InputStreamReader(response.getEntity().getContent()));
 
-			String next = null;
+			String next;
 			while ((next = bufferedReader.readLine()) != null) {
 				totalMessage += next + "\\n";
 				JSONObject jo = new JSONObject(next);
@@ -411,15 +400,17 @@ public class BlaNetwork extends Service implements Runnable {
 			Log.d("NetworkError", "ERROR: " + totalMessage);
 		} catch (IllegalStateException e) {
             Context context = BlaNetwork.getInstance().getApplicationContext();
-            SharedPreferences settings = PreferenceManager
-                    .getDefaultSharedPreferences(context);
-            settings.edit().clear().commit();
+            if (context != null) {
+                SharedPreferences settings = PreferenceManager
+                        .getDefaultSharedPreferences(context);
+                settings.edit().clear().commit();
 
-            Intent mStartActivity = new Intent(context, Conversations.class);
-            int mPendingIntentId = 123456;
-            PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId,    mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
-            AlarmManager mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-            mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+                Intent mStartActivity = new Intent(context, Conversations.class);
+                int mPendingIntentId = 123456;
+                PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId,    mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+                AlarmManager mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+                mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+            }
             System.exit(0);
         }
 		if ((message == null || message.equals("")) && !offline) {
@@ -435,7 +426,7 @@ public class BlaNetwork extends Service implements Runnable {
 	}
 
 	private static String escape(String jsonString) {
-		String result = null;
+		String result;
 
 		try {
 			result = URLEncoder.encode(jsonString, "UTF-8").replaceAll("\\+",
@@ -600,8 +591,8 @@ public class BlaNetwork extends Service implements Runnable {
 	 * true is returned. When false is returned you should call this method
 	 * again after some time.
 	 * 
-	 * @param parent
-	 * @return
+	 * @param parent The context of the caller.
+	 * @return Weather the login was successful.
 	 */
 	public boolean tryLogin(Context parent) {
 		SharedPreferences app_preferences = PreferenceManager
@@ -643,7 +634,7 @@ public class BlaNetwork extends Service implements Runnable {
 	 *            The user.
 	 * @param pw
 	 *            The password.
-	 * @return
+	 * @return Weather the login was successful or not.
 	 */
 	public boolean login(String user, String pw, Context activity) {
 		nick = user;
@@ -680,9 +671,7 @@ public class BlaNetwork extends Service implements Runnable {
 	}
 
 	/**
-	 * Get the list of conversations.
-	 * 
-	 * @return The list of conversations.
+	 * Update the conversation list.
 	 */
 	public void updateConversations() {
 		Log.d("Conversations", "UpdateStart");
@@ -719,9 +708,9 @@ public class BlaNetwork extends Service implements Runnable {
 		}
 	}
 
-	public LinkedList<String> getConversations() {
+	/*public LinkedList<String> getConversations() {
 		return conversations;
-	}
+	}*/
 
 	public String getConversationNickAt(int pos) {
 		return conversationNicks.get(pos);
@@ -765,7 +754,7 @@ public class BlaNetwork extends Service implements Runnable {
 		} catch (JSONException e1) {
 			e1.printStackTrace();
 		}
-		return out.toArray(new ChatMessage[0]);
+		return out.toArray(new ChatMessage[out.size()]);
 	}
 
 	/**
@@ -843,7 +832,7 @@ public class BlaNetwork extends Service implements Runnable {
 	@SuppressWarnings("deprecation")
 	private void displayNotification(String conversation, String name,
 			String text, boolean vibrate) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		if (!preferences.getBoolean("notifications_new_message", true)) {
             return;
         }
@@ -876,18 +865,15 @@ public class BlaNetwork extends Service implements Runnable {
 		} else {
 			notification.sound = null;
 		}
-		if (!preferences.getBoolean("notifications_new_message_vibrate", true)) {
-			long[] pattern = {};
-			notification.vibrate = pattern;
+		if (!vibrate || !preferences.getBoolean("notifications_new_message_vibrate", true)) {
+            notification.vibrate = new long[]{};
 		} else {
 			notification.defaults = Notification.DEFAULT_ALL;
 		}
 
-		if (ledColor != 0) {
-			notification.ledARGB = ledColor;
-			notification.ledOffMS = 500;
-			notification.ledOnMS = 500;
-		}
+		notification.ledARGB = Color.MAGENTA;
+		notification.ledOffMS = 500;
+		notification.ledOnMS = 500;
 		
 		if (conversation.equals("ERROR")) {
 			mNotificationManager.notify(mId + 1, notification);
@@ -933,16 +919,16 @@ public class BlaNetwork extends Service implements Runnable {
 		String[] splits = app_preferences
 				.getString("notifications_" + nick, "").split(BlaNetwork.EOL);
 		notifications.clear();
-		for (int i = 0; i < splits.length; i++) {
-			String[] sub = splits[i].split(BlaNetwork.SEPARATOR);
-			if (sub.length == 3) {
-				LocalNotification n = new LocalNotification();
-				n.conversation = sub[0];
-				n.message = sub[1];
-				n.name = sub[2];
-				notifications.add(n);
-			}
-		}
+        for (String split : splits) {
+            String[] sub = split.split(BlaNetwork.SEPARATOR);
+            if (sub.length == 3) {
+                LocalNotification n = new LocalNotification();
+                n.conversation = sub[0];
+                n.message = sub[1];
+                n.name = sub[2];
+                notifications.add(n);
+            }
+        }
 		Log.d("HangoutNetwork", "Loaded Notifications");
 	}
 
@@ -959,22 +945,22 @@ public class BlaNetwork extends Service implements Runnable {
 		BlaWidget.updateWidgets();
 	}
 
-	public void addConversationNick(String string) {
+	/*public void addConversationNick(String string) {
 		conversationNicks.add(string);
-	}
+	}*/
 
 	public String getUser() {
 		return nick;
 	}
-
+    @SuppressWarnings("deprecation")
 	@Override
 	public void onStart(Intent intent, int startId) {
-		handleCommand(intent);
+		handleCommand();
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		handleCommand(intent);
+		handleCommand();
 		return START_STICKY;
 	}
 
@@ -984,7 +970,7 @@ public class BlaNetwork extends Service implements Runnable {
 		super.onDestroy();
 	}
 
-	private void handleCommand(Intent intent) {
+	private void handleCommand() {
 		instance = this;
 		Thread t = new Thread(this);
 		t.start();
@@ -1065,9 +1051,9 @@ public class BlaNetwork extends Service implements Runnable {
 		return markedConversations;
 	}
 
-	public void setConversationNickAt(int pos, String string) {
+	/*public void setConversationNickAt(int pos, String string) {
 		conversationNicks.set(pos, string);
-	}
+	}*/
 
 	static String lineEnd = "\r\n";
 	static String twoHyphens = "--";
@@ -1075,12 +1061,15 @@ public class BlaNetwork extends Service implements Runnable {
 
 	@SuppressWarnings("deprecation")
 	public void send(final Bitmap bmp, final String conversation) {
+        boolean error = true;
+        while (error) {
+            error = false;
 		String jsonString = "{\"type\":\"onData\", \"msg\":{\"user\":\"" + nick
 				+ "\" , \"password\": \"" + pw + "\", \"conversation\":\""
 				+ conversation + "\", \"type\":\"image\"}}";
 		try {
-			HttpURLConnection conn = null;
-			DataOutputStream dos = null;
+			HttpURLConnection conn;
+			DataOutputStream dos;
 			DataInputStream dis = null;
 			URL url = new URL(getServer() + "/api.php");
 			// ------------------ CLIENT REQUEST
@@ -1130,8 +1119,8 @@ public class BlaNetwork extends Service implements Runnable {
 					response.append(line).append('\n');
 				}
 
-				// String result = response.toString();
-				// Ignored atm.
+				String result = response.toString();
+                Log.d("Image sending", result);
 			} finally {
 				if (dis != null)
 					dis.close();
@@ -1141,14 +1130,26 @@ public class BlaNetwork extends Service implements Runnable {
 		} catch (ProtocolException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+            // Assume we have connection issues.
+            e.printStackTrace();
+            error = true;
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+                return;
+            }
 		}
+        }
 	}
 
-	public void send(final Video vid, final String conversation) {
+	/*public void send(final Video vid, final String conversation) {
 		new Thread() {
 			@SuppressWarnings("deprecation")
 			public void run() {
+                boolean error = true;
+                while (error) {
+                    error = false;
 				String jsonString = "{\"type\":\"onData\", \"msg\":{\"user\":\""
 						+ nick
 						+ "\" , \"password\": \""
@@ -1219,15 +1220,24 @@ public class BlaNetwork extends Service implements Runnable {
 				} catch (ProtocolException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
+                    // Assume we have connection issues.
 					e.printStackTrace();
+                    error = true;
+                    try {
+                        sleep(1000);
+                    } catch (InterruptedException ie) {
+                        ie.printStackTrace();
+                        return;
+                    }
 				}
+                }
 			}
 		}.start();
-	}
+	}*/
 
-	private LinkedList<String> reloadFiles = new LinkedList<String>();
+    private final HashMap<String, String> lastMessages;
 
-	private final HashMap<String, String> lastMessages;
+	/*private LinkedList<String> reloadFiles = new LinkedList<String>();
 
 	public void requireFileReload(String preFile) {
 		reloadFiles.add(preFile);
@@ -1239,7 +1249,7 @@ public class BlaNetwork extends Service implements Runnable {
 
 	public void fileReloaded(String preFile) {
 		reloadFiles.remove(preFile);
-	}
+	}*/
 
 	public String getLastMessage(String nick) {
 		if (!lastMessages.containsKey(nick)) {
@@ -1271,10 +1281,10 @@ public class BlaNetwork extends Service implements Runnable {
 	public String getNotificationText() {
 		if (notifications.size() > 0) {
 			String result = "";
-			for (int i = 0; i < notifications.size(); i++) {
-				result += notifications.get(i).name + ": "
-						+ notifications.get(i).message + "\n";
-			}
+            for (LocalNotification notification : notifications) {
+                result += notification.name + ": "
+                        + notification.message + "\n";
+            }
 			return result;
 		} else {
 			return "No news";
@@ -1286,8 +1296,7 @@ public class BlaNetwork extends Service implements Runnable {
 
 	public String[] getContactNames() {
 		if (contactNames == null) {
-			SharedPreferences app_preferences = PreferenceManager
-					.getDefaultSharedPreferences(getApplicationContext());
+			SharedPreferences app_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
 			String[] splits = app_preferences.getString("contacts", "").split(
 					BlaNetwork.EOL);
@@ -1347,8 +1356,7 @@ public class BlaNetwork extends Service implements Runnable {
 		for (int i = 0; i < contactNames.length; i++) {
 			temp += contactNames[i] + SEPARATOR + contactNicks[i] + EOL;
 		}
-		SharedPreferences app_preferences = PreferenceManager
-				.getDefaultSharedPreferences(getApplicationContext());
+		SharedPreferences app_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		SharedPreferences.Editor editor = app_preferences.edit();
 		editor.putString("contacts", temp);
 		editor.commit();
@@ -1402,6 +1410,7 @@ public class BlaNetwork extends Service implements Runnable {
 		return submit(jsonString, getServer());
 	}
 
+    @SuppressWarnings("deprecation")
 	public String setImage(Bitmap bmp, String conversation) {
 		conversation = conversation.replaceAll(",", "-");
 		String jsonString = "{\"type\":\"onSetGroupImage\", \"msg\":{\"user\":\""
@@ -1414,8 +1423,8 @@ public class BlaNetwork extends Service implements Runnable {
 
 		String result = "ERROR";
 		try {
-			HttpURLConnection conn = null;
-			DataOutputStream dos = null;
+			HttpURLConnection conn;
+			DataOutputStream dos;
 			DataInputStream dis = null;
 			URL url = new URL(getServer() + "/api.php");
 			// ------------------ CLIENT REQUEST
@@ -1481,6 +1490,7 @@ public class BlaNetwork extends Service implements Runnable {
 		return result;
 	}
 
+    @SuppressWarnings("deprecation")
 	public String setImage(Bitmap bmp) {
 		String jsonString = "{\"type\":\"onSetProfileImage\", \"msg\":{\"user\":\""
 				+ nick
@@ -1490,8 +1500,8 @@ public class BlaNetwork extends Service implements Runnable {
 
 		String result = "ERROR";
 		try {
-			HttpURLConnection conn = null;
-			DataOutputStream dos = null;
+			HttpURLConnection conn;
+			DataOutputStream dos;
 			DataInputStream dis = null;
 			URL url = new URL(getServer() + "/api.php");
 			// ------------------ CLIENT REQUEST

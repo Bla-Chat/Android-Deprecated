@@ -25,7 +25,6 @@ import android.widget.Toast;
 public class Conversations extends Activity implements MessageListener {
 
 	private BlaNetwork networkAdapter = null;
-	boolean waiting = false;
 	private boolean isAlive = false;
 	private final List<ConversationViewData> conversationData = new LinkedList<ConversationViewData>();
 
@@ -120,6 +119,7 @@ public class Conversations extends Activity implements MessageListener {
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
+                            if (input.getText() == null) return;
 							final String value = input.getText().toString();
 							if (networkAdapter != null) {
 								new AsyncTask<Void, Void, Void>() {
@@ -192,11 +192,10 @@ public class Conversations extends Activity implements MessageListener {
 					conversationData.addAll(loadAsConversations(that));
 					LinearLayout ll = new LinearLayout(that);
 					ll.setOrientation(LinearLayout.VERTICAL);
-					for (int i = 0; i < conversationData.size(); i++) {
-						ll.addView(new ConversationView(that, conversationData
-								.get(i), BlaNetwork.getUser(that)));
-						ll.addView(new Delimiter(that));
-					}
+                    for (ConversationViewData aConversationData : conversationData) {
+                        ll.addView(new ConversationView(that, aConversationData, BlaNetwork.getUser(that)));
+                        ll.addView(new Delimiter(that));
+                    }
 					Log.d("Update2", "Updating conversation view.");
 					return ll;
 				}
@@ -226,18 +225,17 @@ public class Conversations extends Activity implements MessageListener {
 			List<ConversationViewData> conversations, Context ctx) {
 		Log.d("ConversationSave", "size:"+conversations.size());
 		String temp = "";
-		for (int i = 0; i < conversations.size(); i++) {
-			ConversationViewData current = conversations.get(i);
-			temp += current.name;
-			temp += BlaNetwork.SEPARATOR + current.nick;
-			if (current.marked) {
-				temp += BlaNetwork.SEPARATOR + "true";
-			} else {
-				temp += BlaNetwork.SEPARATOR + "false";
-			}
-			temp += BlaNetwork.SEPARATOR + current.lastMessage;
-			temp += BlaNetwork.EOL;
-		}
+        for (ConversationViewData current : conversations) {
+            temp += current.name;
+            temp += BlaNetwork.SEPARATOR + current.nick;
+            if (current.marked) {
+                temp += BlaNetwork.SEPARATOR + "true";
+            } else {
+                temp += BlaNetwork.SEPARATOR + "false";
+            }
+            temp += BlaNetwork.SEPARATOR + current.lastMessage;
+            temp += BlaNetwork.EOL;
+        }
 
 		SharedPreferences app_preferences = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
@@ -249,15 +247,8 @@ public class Conversations extends Activity implements MessageListener {
 	public static List<ConversationViewData> loadAsConversations(Context ctx) {
 		Log.d("Load", "Load conversations");
 		List<ConversationViewData> result = new LinkedList<ConversationViewData>();
-		SharedPreferences app_preferences = null;
-		try {
-			app_preferences = PreferenceManager
-					.getDefaultSharedPreferences(ctx);
-
-		} catch (NullPointerException e) {
-			Log.d("NP", "error:");
-			return result;
-		}
+		SharedPreferences app_preferences;
+        app_preferences = PreferenceManager.getDefaultSharedPreferences(ctx);
 
 		String[] lines = app_preferences.getString("conversations", "").split(
 				BlaNetwork.EOL);

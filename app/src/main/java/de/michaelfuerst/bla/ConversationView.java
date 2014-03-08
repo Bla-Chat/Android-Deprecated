@@ -26,11 +26,6 @@ public class ConversationView extends LinearLayout {
 
 	private static final int PROFILE_IMAGE_SIZE = 64;
 	
-	public ConversationView(Context parent) throws IllegalAccessException {
-		super(parent);
-		throw new IllegalAccessException();
-	}
-	
 	public ConversationView(final Conversations parent, ConversationViewData d, String user) {
 		super(parent);
 		final String name = d.name;
@@ -43,15 +38,15 @@ public class ConversationView extends LinearLayout {
 				setBackgroundColor(Color.rgb(245, 245, 255));
 				BlaNetwork networkAdapter = BlaNetwork.getInstance();
 				if (networkAdapter != null) {
-					String openConversation = nick;
-					networkAdapter.unmark(openConversation);
+					networkAdapter.unmark(nick);
 					// detachAllViewsFromParent();
 					// createChilds(parent, name, nick);
-					String openConversationName = name;
-					Intent intent = new Intent(getContext(), Chat.class);
-					intent.putExtra("chatnick", openConversation);
-					intent.putExtra("chatname", openConversationName);
-					getContext().startActivity(intent);
+                    if (getContext() != null) {
+					    Intent intent = new Intent(getContext(), Chat.class);
+					    intent.putExtra("chatnick", nick);
+					    intent.putExtra("chatname", name);
+					    getContext().startActivity(intent);
+                    }
 				}
 				new AsyncTask<Void, Void, Void>() {
 

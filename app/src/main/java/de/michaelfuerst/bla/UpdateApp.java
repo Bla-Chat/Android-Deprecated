@@ -29,7 +29,7 @@ import android.util.Log;
  * 
  */
 public class UpdateApp extends AsyncTask<String, Void, Void> {
-	//private static final String VERSION = "1.1.0.1";
+	//private static final String VERSION = "1.1.0.2";
 	private static final String VERSION = "dev";
 	private Context context;
 
@@ -49,7 +49,7 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 			BufferedReader bufferedReader = new BufferedReader(
 					new InputStreamReader(response.getEntity().getContent()));
 
-			String next = null;
+			String next;
 			while ((next = bufferedReader.readLine()) != null) {
 				if (next.equals(VERSION)) {
 					return false;
@@ -78,17 +78,17 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 
 			String PATH = Environment.getExternalStorageDirectory()+"/Download/";
 			File file = new File(PATH);
-			file.mkdirs();
+			if(!file.mkdirs()) return null;
 			File outputFile = new File(file, "bla_update.apk");
 			if (outputFile.exists()) {
-				outputFile.delete();
+				if(!outputFile.delete()) return null;
 			}
 			FileOutputStream fos = new FileOutputStream(outputFile);
 
 			InputStream is = c.getInputStream();
 
 			byte[] buffer = new byte[1024];
-			int len1 = 0;
+			int len1;
 			while ((len1 = is.read(buffer)) != -1) {
 				fos.write(buffer, 0, len1);
 			}

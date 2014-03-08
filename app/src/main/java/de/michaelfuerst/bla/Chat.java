@@ -45,11 +45,10 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Video;
 
 public class Chat extends Activity {
 
-	private static final int VIDEO_RESULT = 0;
+	//private static final int VIDEO_RESULT = 0;
 	private static final int IMAGE_RESULT = 0;
 	private static final int IMAGE_MAX_WIDTH = 200;
 	private static final int IMAGE_MAX_HEIGHT = 150;
@@ -67,7 +66,7 @@ public class Chat extends Activity {
 		}
 	};
 	private ChatMessage[] chatList;
-	private boolean fotoReturn;
+	//private boolean fotoReturn;
 	private boolean isSetImage = false;
 
 	@Override
@@ -85,17 +84,19 @@ public class Chat extends Activity {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 boolean handled = false;
                 if (actionId == EditorInfo.IME_ACTION_SEND) {
-                    String message = editText.getText().toString();
+                    if (editText.getText() != null) {
+                        String message = editText.getText().toString();
 
-                    imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+                        imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
 
-                    if (!message.equals("")) {
-                        editText.setText("");
-                        new SendMessageThread(parent, message, nick).start();
-                        insertMessage(message);
+                        if (!message.equals("")) {
+                            editText.setText("");
+                            new SendMessageThread(parent, message, nick).start();
+                            insertMessage(message);
+                        }
+
+                        handled = true;
                     }
-
-                    handled = true;
                 }
                 return handled;
             }
@@ -104,15 +105,17 @@ public class Chat extends Activity {
 		img.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				String message = editText.getText().toString();
+                if (editText.getText() != null) {
+				    String message = editText.getText().toString();
 
-                imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+                    imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
 
-				if (!message.equals("")) {
-					editText.setText("");
-					new SendMessageThread(parent, message, nick).start();
-					insertMessage(message);
-				}
+				    if (!message.equals("")) {
+					    editText.setText("");
+					    new SendMessageThread(parent, message, nick).start();
+					    insertMessage(message);
+				    }
+                }
             }
 		});
 
@@ -176,12 +179,12 @@ public class Chat extends Activity {
 	public static void saveChatAs(Context ctx, String nick,
 			ChatMessage[] chatList) {
 		String temp = "";
-		for (int i = 0; i < chatList.length; i++) {
-			temp += chatList[i].author + BlaNetwork.SEPARATOR
-					+ chatList[i].message + BlaNetwork.SEPARATOR
-					+ chatList[i].sender + BlaNetwork.SEPARATOR
-					+ chatList[i].time + BlaNetwork.EOL;
-		}
+        for (ChatMessage aChatList : chatList) {
+            temp += aChatList.author + BlaNetwork.SEPARATOR
+                    + aChatList.message + BlaNetwork.SEPARATOR
+                    + aChatList.sender + BlaNetwork.SEPARATOR
+                    + aChatList.time + BlaNetwork.EOL;
+        }
 
 		SharedPreferences app_preferences = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
@@ -191,9 +194,7 @@ public class Chat extends Activity {
 	}
 
 	private void insertMessage(String message) {
-		for (int i = chatList.length - 1; i > 0; i--) {
-			chatList[i] = chatList[i - 1];
-		}
+        System.arraycopy(chatList, 0, chatList, 1, chatList.length - 1);
 		ChatMessage m = new ChatMessage();
 		m.author = BlaNetwork.getInstance().getUser();
 		m.message = message;
@@ -214,7 +215,7 @@ public class Chat extends Activity {
 			LinearLayout ll = (LinearLayout) findViewById(R.id.messages);
 			ll.removeAllViews();
 
-			ChatMessage c = null;
+			ChatMessage c;
 			if (messages.length == 0) {
 				TextView textView = new TextView(this);
 				textView.setText("No messages");
@@ -363,13 +364,8 @@ public class Chat extends Activity {
 	}
 
 	private boolean timeDif(String time, String time2) {
-		if (time.equals("uploading...") || time2.equals("uploading...")) {
-			if (!time.equals("uploading...") || !time2.equals("uploading...")) {
-				return true;
-			} else {
-				return false;
-			}
-		}
+		if (time.equals("uploading...") || time2.equals("uploading..."))
+            return !time.equals("uploading...") || !time2.equals("uploading...");
 
 		String tmp = time.substring(time.length() - 5, time.length() - 3);
 		int t1 = Integer.parseInt(tmp);
@@ -380,7 +376,7 @@ public class Chat extends Activity {
 		time = time.substring(0, time.length() - 6);
 		time2 = time2.substring(0, time2.length() - 6);
 
-		return time.equals(time2) ? Math.abs(t1 - t2) > 2 : true;
+		return !time.equals(time2) || Math.abs(t1 - t2) > 2;
 	}
 
 	private View getImageView(final String path) {
@@ -433,7 +429,7 @@ public class Chat extends Activity {
 	 */
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	private void setupActionBar() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && getActionBar() != null) {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
 	}
@@ -511,6 +507,7 @@ public class Chat extends Activity {
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
+                            if (input.getText() == null) return;
 							final String value = input.getText().toString();
 							networkAdapter = BlaNetwork.getInstance();
 							if (networkAdapter != null) {
@@ -547,7 +544,6 @@ public class Chat extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == IMAGE_RESULT) {
 			if (resultCode == Activity.RESULT_OK) {
-				fotoReturn = true;
 				if (data != null && data.getData() != null) {
 					final Chat that = this;
 					Uri _uri = data.getData();
@@ -557,6 +553,8 @@ public class Chat extends Activity {
 							.query(_uri,
 									new String[] { android.provider.MediaStore.Images.ImageColumns.DATA },
 									null, null, null);
+                    if (cursor == null) return;
+
 					cursor.moveToFirst();
 
 					// Link to the image
@@ -587,7 +585,6 @@ public class Chat extends Activity {
 									networkAdapter.send(bmp, nick);
 								}
 							}
-							fotoReturn = false;
 							return null;
 						}
 
@@ -620,7 +617,6 @@ public class Chat extends Activity {
 									networkAdapter.send(bmp, nick);
 								}
 							}
-							fotoReturn = false;
 							return null;
 						}
 
@@ -632,23 +628,23 @@ public class Chat extends Activity {
 					}.execute();
 				}
 			}
-		} else if (requestCode == VIDEO_RESULT) {
+		} /*else if (requestCode == VIDEO_RESULT) {
 			if (resultCode == Activity.RESULT_OK) {
 				Toast.makeText(this, "Uploading video", Toast.LENGTH_LONG)
 						.show();
 				Bundle b = data.getExtras();
+                if ( b== null ) return;
 				Video vid = (Video) b.get("data");
 				if (vid != null) {
 					networkAdapter.send(vid, nick);
 				}
 			}
-		}
+		}*/
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 	@Override
 	protected void onPause() {
-		fotoReturn = false;
 		isAlive = false;
 		if (networkAdapter != null) {
 			networkAdapter.requestPause();
@@ -726,10 +722,9 @@ public class Chat extends Activity {
 				@Override
 				protected Drawable doInBackground(Void... params) {
 					p = BlaNetwork.getServer(ctx) + "/imgs/user.png";
-					Drawable image = LocalResourceManager.getDrawable(ctx, p,
-							size, 0);
 
-					return image;
+                    return LocalResourceManager.getDrawable(ctx, p,
+                            size, 0);
 				}
 
 				@Override
