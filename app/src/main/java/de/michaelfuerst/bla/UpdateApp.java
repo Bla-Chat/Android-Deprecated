@@ -29,7 +29,7 @@ import android.util.Log;
  * 
  */
 public class UpdateApp extends AsyncTask<String, Void, Void> {
-	//private static final String VERSION = "1.1.0.0";
+	//private static final String VERSION = "1.1.0.1";
 	private static final String VERSION = "dev";
 	private Context context;
 
@@ -65,12 +65,12 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 	@Override
 	protected Void doInBackground(String... arg0) {
 		try {
-			if (!needsUpdate(BlaNetwork.getServer(context))) {
+			if (!needsUpdate(arg0[0])) {
 				Log.d("Updater", "Skipping update already up to date!");
 				return null;
 			}
 			Log.d("Updater", "Updating!");
-			URL url = new URL(arg0[0]);
+			URL url = new URL(arg0[0]+arg0[1]);
 			HttpURLConnection c = (HttpURLConnection) url.openConnection();
 			c.setRequestMethod("GET");
 			c.setDoOutput(true);

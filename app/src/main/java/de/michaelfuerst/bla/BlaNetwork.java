@@ -1,5 +1,5 @@
 /**
- * 
+ * The bla package.
  */
 package de.michaelfuerst.bla;
 
@@ -82,7 +82,7 @@ public class BlaNetwork extends Service implements Runnable {
     public static void setServer(String server, Context ctx) {
         BlaNetwork.server = server;
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx.getApplicationContext());
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx);
         preferences.edit().putString("bla_server", server).commit();
     }
 
@@ -92,7 +92,7 @@ public class BlaNetwork extends Service implements Runnable {
 
     public static String getServer(Context ctx) {
         if (server == null) {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx.getApplicationContext());
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx);
             server = preferences.getString("bla_server", DEFAULT_BLA_SERVER);
         }
 
@@ -103,6 +103,21 @@ public class BlaNetwork extends Service implements Runnable {
 
         Log.d("ServerAddress", server + separator + "api");
         return server + separator + "api";
+    }
+
+    /**
+     * Get the update server for bla.
+     *
+     * By forcing all endusers to the most recent version of bla admins are forced to update the servers.
+     *
+     * @return The update server for bla.
+     */
+    public String getUpdateServer() {
+        String separator = "";
+        if (!DEFAULT_BLA_SERVER.endsWith("/")) {
+            separator = "/";
+        }
+        return DEFAULT_BLA_SERVER + separator + "api";
     }
 
     public void setActiveConversation(String newConversation) {
@@ -130,7 +145,7 @@ public class BlaNetwork extends Service implements Runnable {
 		}
 		
 		// EMERGENCY WAKER
-		new Thread () {
+		/*new Thread () {
 			@Override
 			public void run() {
 				while (true) {
@@ -145,6 +160,7 @@ public class BlaNetwork extends Service implements Runnable {
 				}
 			}
 		}.start();
+		*/
 	}
 
 	public static BlaNetwork getInstance() {
@@ -152,14 +168,30 @@ public class BlaNetwork extends Service implements Runnable {
 	}
 
     boolean login = false;
+
     public void onLogin() {
         login = true;
     }
     public void doneLogin() {
         login = false;
     }
+
     public boolean isLogin() {
         return login;
+    }
+
+    public void setReady(boolean value) {
+        synchronized (BlaNetwork.class) {
+            isReady = value;
+            BlaNetwork.class.notifyAll();
+        }
+    }
+
+    public void setRunning(boolean value) {
+        synchronized (BlaNetwork.class) {
+            isRunning = value;
+            BlaNetwork.class.notifyAll();
+        }
     }
 
 	@Override
@@ -168,7 +200,7 @@ public class BlaNetwork extends Service implements Runnable {
 
 		UpdateApp updater = new UpdateApp();
 		updater.setContext(getApplicationContext());
-		updater.execute(getServer()+"/bla.apk");
+		updater.execute(getUpdateServer(), "/bla.apk");
 		try {
 			runService();
 		} catch (NullPointerException e) {
@@ -177,6 +209,9 @@ public class BlaNetwork extends Service implements Runnable {
 	}
 
 	private void runService() {
+        synchronized (BlaNetwork.class) {
+            BlaNetwork.class.notifyAll();
+        }
 		status = 120;
 		if (!isReady) {
 			LoginNetworkThread t = new LoginNetworkThread(this);
@@ -189,13 +224,12 @@ public class BlaNetwork extends Service implements Runnable {
 					}
 				}
 			} catch (InterruptedException e) {
+                Log.d("Interruptedexception", "We were interrupted!");
+                return;
 			}
 		}
 
-		synchronized (BlaNetwork.class) {
-			isRunning = true;
-			BlaNetwork.class.notifyAll();
-		}
+		setRunning(true);
 		tryToRetrieveOldMessages();
 		updateNotifications(false);
 		SharedPreferences app_preferences = PreferenceManager
@@ -204,7 +238,6 @@ public class BlaNetwork extends Service implements Runnable {
 		editor.putString("id", id);
 		editor.commit();
 		while (status > 0) {
-			long delay = status * 100;
 			if (status < 120) {
 				status += 10;
 			} else if (status < 300) { // slightly increase status
@@ -241,15 +274,12 @@ public class BlaNetwork extends Service implements Runnable {
             }
 
 			try {
-				Thread.sleep(tmpstatus);
+				Thread.sleep(tmpstatus * 100);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		synchronized (BlaNetwork.class) {
-			isRunning = false;
-			BlaNetwork.class.notifyAll();
-		}
+		setRunning(false);
 	}
 
 	private void tryToRetrieveOldMessages() {
@@ -374,6 +404,8 @@ public class BlaNetwork extends Service implements Runnable {
 				}
 			}
 		} catch (IOException e) {
+            message = "ERROR";
+            Log.d("NetworkError", "ERROR: " + totalMessage);
 		} catch (JSONException e) {
 			message = "ERROR";
 			Log.d("NetworkError", "ERROR: " + totalMessage);
@@ -588,10 +620,7 @@ public class BlaNetwork extends Service implements Runnable {
 				id = null;
 				return false;
 			} else {
-				synchronized (BlaNetwork.class) {
-					isReady = true;
-					BlaNetwork.class.notifyAll();
-				}
+				setReady(true);
 				return true;
 			}
 		}
@@ -634,10 +663,7 @@ public class BlaNetwork extends Service implements Runnable {
 			editor.putString("nick", nick);
 			editor.commit();
 			
-			synchronized (BlaNetwork.class) {
-				isReady = true;
-				BlaNetwork.class.notifyAll();
-			}
+			setReady(true);
 			return true;
 		}
 	}
@@ -1530,5 +1556,5 @@ public class BlaNetwork extends Service implements Runnable {
 		}
 		Log.d("ERROR", result);
 		return result;
-	}
+    }
 }
