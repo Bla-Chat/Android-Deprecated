@@ -14,6 +14,8 @@ import java.net.URL;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -69,20 +71,33 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 			if (!needsUpdate(arg0[0])) {
 				return null;
 			}
+            ConnectivityManager mgrConn = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo mWifi = mgrConn.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+            if (!mWifi.isConnected()) {
+                Log.d("UpdateApp", "Skipped update due to missing WLAN!");
+                return null;
+            }
 			Log.d("UpdateApp", "Updating!");
-			URL url = new URL(arg0[1]);
+			URL url = new URL(arg0[0] + "/bla.apk");
 			HttpURLConnection c = (HttpURLConnection) url.openConnection();
-			c.setRequestMethod("GET");
-			c.setDoOutput(true);
-			c.connect();
+            c.setDoInput(true);
+            c.setConnectTimeout(10000); // timeout 10 secs
+            c.connect();
 
 			String PATH = Environment.getExternalStorageDirectory()+"/Download/";
 			File file = new File(PATH);
-			if(!file.mkdirs()) return null;
 			File outputFile = new File(file, "bla_update.apk");
 			if (outputFile.exists()) {
-				if(!outputFile.delete()) return null;
-			}
+				if(!outputFile.delete()) {
+                    Log.d("UpdateApp", "Cannot delete old file!");
+                    return null;
+                }
+			} else {
+                if(!(!file.exists() && !file.mkdirs())) {
+                    Log.d("UpdateApp", "Cannot create directories!");
+                    return null;
+                }
+            }
 			FileOutputStream fos = new FileOutputStream(outputFile);
 
 			InputStream is = c.getInputStream();

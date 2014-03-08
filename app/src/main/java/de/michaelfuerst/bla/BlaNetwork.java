@@ -169,7 +169,7 @@ public class BlaNetwork extends Service implements Runnable {
 
 		UpdateApp updater = new UpdateApp();
 		updater.setContext(getApplicationContext());
-		updater.execute("https://raw.github.com/penguinmenac3/BlaChat/master/app", "https://github.com/penguinmenac3/BlaChat/blob/master/app/bla.apk?raw=true");
+		updater.execute("https://raw.github.com/penguinmenac3/BlaChat/master/app");
 		try {
 			runService();
 		} catch (NullPointerException e) {
