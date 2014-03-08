@@ -66,7 +66,6 @@ public class AutoBufferingImageView extends ImageView {
 					super.onDraw(canvas);
 				} else {
 					if (!loading) {
-						Log.d("ImageLoading", "Loading: " + path);
 						loading = true;
 						new AsyncTask<Void, Void, Drawable>() {
 							@Override

@@ -99,7 +99,6 @@ public class BlaNetwork extends Service implements Runnable {
             separator = "/";
         }
 
-        Log.d("ServerAddress", server + separator + "api");
         return server + separator + "api";
     }
 
