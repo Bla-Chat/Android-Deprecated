@@ -29,8 +29,8 @@ import android.util.Log;
  * 
  */
 public class UpdateApp extends AsyncTask<String, Void, Void> {
-	private static final String VERSION = "1.1.0.3";
-	//private static final String VERSION = "dev";
+	//private static final String VERSION = "1.1.0.3";
+	private static final String VERSION = "dev";
 	private Context context;
 
 	public void setContext(Context contextf) {
