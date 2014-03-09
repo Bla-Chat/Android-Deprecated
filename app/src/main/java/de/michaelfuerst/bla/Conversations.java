@@ -164,6 +164,7 @@ public class Conversations extends Activity implements MessageListener {
 	@Override
 	protected void onPause() {
 		if (networkAdapter != null) {
+            networkAdapter.setActivity(null);
 			networkAdapter.requestPause();
 			BlaWidget.updateWidgets();
 		}
@@ -178,6 +179,7 @@ public class Conversations extends Activity implements MessageListener {
 		isAlive = true;
 		updateData();
 		if (networkAdapter != null) {
+            networkAdapter.setActivity(this);
 			networkAdapter.requestResumeLowFrequency();
 			ConversationInitThread t = new ConversationInitThread(this);
 			t.execute();

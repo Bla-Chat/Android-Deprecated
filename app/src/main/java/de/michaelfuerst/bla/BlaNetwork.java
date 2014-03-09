@@ -31,6 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -79,6 +80,12 @@ public class BlaNetwork extends Service implements Runnable {
 	private boolean isReady = false;
 	private final LinkedList<String> markedConversations;
 	private boolean offline = false;
+    private boolean update = false;
+    private Activity activity = null;
+
+    public void setActivity(Activity activity) {
+        this.activity = activity;
+    }
 
     public static void setServer(String server, Context ctx) {
         BlaNetwork.server = server;
@@ -794,8 +801,8 @@ public class BlaNetwork extends Service implements Runnable {
 
 	LinkedList<LocalNotification> notifications = new LinkedList<LocalNotification>();
 
-	public void addNotification(String conversation, String text,
-			boolean vibrate) {
+	public void addNotification(final String conversation, final String text,
+			final boolean vibrate) {
 		LocalNotification notification = new LocalNotification();
 		notification.conversation = conversation;
 		String name = getNameOfConversation(conversation);
@@ -813,7 +820,21 @@ public class BlaNetwork extends Service implements Runnable {
 		}
 		notifications.add(notification);
 		storeNotifications();
-		updateNotifications(vibrate);
+        if (!update) {
+            update = true;
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(1500);
+                    } catch(InterruptedException i) {
+                        Log.d("BlaNetwork", "Add notification was interrupted");
+                    }
+                    update = false;
+                    updateNotifications(vibrate);
+                }
+            }.start();
+        }
 	}
 
 	private String getNameOfConversation(String conversation) {
@@ -848,7 +869,7 @@ public class BlaNetwork extends Service implements Runnable {
 			Intent intent = new Intent(this, Chat.class);
 			intent.putExtra("chatname", name);
 			intent.putExtra("chatnick", conversation);
-            Log.d("Notification", conversation+"|"+name);
+            Log.d("Notification", conversation + "|" + name);
 			resultIntent = PendingIntent.getActivity(this, 0,
 					intent, Notification.FLAG_AUTO_CANCEL | PendingIntent.FLAG_UPDATE_CURRENT);
 		} else {
@@ -1277,6 +1298,10 @@ public class BlaNetwork extends Service implements Runnable {
 	public void setLastMessage(String nick, String message) {
 		lastMessages.put(nick, message);
 		saveConversations();
+        if (activity instanceof Conversations) {
+            Conversations tmp = (Conversations)activity;
+            tmp.updateData();
+        }
 	}
 
 	public void detachMessageListener(MessageListener toRemove) {
