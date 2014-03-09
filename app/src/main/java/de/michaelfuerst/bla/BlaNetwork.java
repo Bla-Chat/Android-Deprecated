@@ -237,21 +237,21 @@ public class BlaNetwork extends Service implements Runnable {
             }
 
             if (tmpstatus > 0) {
-			String jsonString = "{\"type\":\"onEvent\", \"msg\":{\"user\":\""
+			    String jsonString = "{\"type\":\"onEvent\", \"msg\":{\"user\":\""
 					+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \""
 					+ id + "\"}}";
-			try {
-				String result = submit(jsonString, getServer());
-				if (result != null && !result.equals("")) {
-					JSONArray ja = new JSONArray(result);
-					for (int i = 0; i < ja.length(); i++) {
-						JSONObject jo = (JSONObject) ja.get(i);
-						handleIncoming(jo);
-					}
-				}
-			} catch (JSONException e1) {
-				e1.printStackTrace();
-			}
+			    try {
+				    String result = submit(jsonString, getServer());
+				    if (result != null && !result.equals("")) {
+					    JSONArray ja = new JSONArray(result);
+					    for (int i = 0; i < ja.length(); i++) {
+						    JSONObject jo = (JSONObject) ja.get(i);
+						    handleIncoming(jo);
+					    }
+				    }
+			    } catch (JSONException e1) {
+				    e1.printStackTrace();
+			    }
             } else {
                 tmpstatus = status;
             }
