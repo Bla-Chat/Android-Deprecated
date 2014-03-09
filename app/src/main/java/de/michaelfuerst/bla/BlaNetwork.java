@@ -43,6 +43,8 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Color;
 import android.media.RingtoneManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -222,7 +224,19 @@ public class BlaNetwork extends Service implements Runnable {
             int syncFrequency = Integer.parseInt(app_preferences.getString("sync_frequency", "2"));
             int tmpstatus = (int) (status * syncFrequency / 2.0);
 
-            if (syncFrequency > 0) {
+            ConnectivityManager mgrConn = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo mWifi = mgrConn.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+            if (mWifi.isConnected()) {
+                // Force higher priority updates when connected to WIFI
+                tmpstatus = (int) (status * syncFrequency / 4.0);
+
+                // WLAN only mode
+                if (tmpstatus < 0) {
+                    tmpstatus = status;
+                }
+            }
+
+            if (tmpstatus > 0) {
 			String jsonString = "{\"type\":\"onEvent\", \"msg\":{\"user\":\""
 					+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \""
 					+ id + "\"}}";
