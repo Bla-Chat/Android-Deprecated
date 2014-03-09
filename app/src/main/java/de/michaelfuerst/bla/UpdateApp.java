@@ -26,7 +26,7 @@ import android.util.Log;
  * 
  */
 public class UpdateApp extends AsyncTask<String, Void, Void> {
-	public static final String VERSION = "1.2.1.1";
+	public static final String VERSION = "1.2.1.2";
 	private Context context;
 
 	public void setContext(Context contextf) {
@@ -46,15 +46,16 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 
 			String next;
 
-            int end = VERSION.lastIndexOf(".");
-            String majorVersion = VERSION.substring(0, end);
 			while ((next = bufferedReader.readLine()) != null) {
                 if (next.contains("Page not found")) {
                     Log.d("UpdateApp", "Page not found error!");
                     return false;
                 }
-				if (next.startsWith(majorVersion)) {
-                    Log.d("UpdateApp", "Found valid major version " + next);
+                String[] split = next.split("\\.");
+                String[] versions = VERSION.split("\\.");
+
+				if (split.length > 2 && versions.length > 2 && isLargerOrEqual(split, versions)) {
+                    Log.d("UpdateApp", "Your version is newer than min supported version.");
 					return false;
 				}
 			}
@@ -65,7 +66,32 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 		return true;
 	}
 
-	@Override
+    /**
+     * Determine if versions is lager or equal to split.
+     *
+     * @param split The split value from the server.
+     * @param versions The versions from this app.
+     * @return Weather versions is larger or equal to split.
+     */
+    private boolean isLargerOrEqual(String[] split, String[] versions) {
+        if (Integer.parseInt(versions[0]) < Integer.parseInt(split[0]))
+            return false;
+        if (Integer.parseInt(versions[0]) > Integer.parseInt(split[0]))
+            return true;
+        if (Integer.parseInt(versions[1]) < Integer.parseInt(split[1]))
+            return false;
+        if (Integer.parseInt(versions[1]) > Integer.parseInt(split[1]))
+            return true;
+        if (Integer.parseInt(versions[2]) < Integer.parseInt(split[2]))
+            return false;
+        if (Integer.parseInt(versions[2]) > Integer.parseInt(split[2]))
+            return true;
+        if (Integer.parseInt(versions[3]) < Integer.parseInt(split[3]))
+            return false;
+        return true;
+    }
+
+    @Override
 	protected Void doInBackground(String... arg0) {
 		try {
 			if (!needsUpdate(arg0[0])) {
