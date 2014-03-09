@@ -234,7 +234,7 @@ public class BlaNetwork extends Service implements Runnable {
 
             ConnectivityManager mgrConn = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo mWifi = mgrConn.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-            if (mWifi.isConnected()) {
+            if (mWifi != null && mWifi.isConnected()) {
                 // Force higher priority updates when connected to WIFI
                 tmpstatus = (int) (status * syncFrequency / 4.0);
 
