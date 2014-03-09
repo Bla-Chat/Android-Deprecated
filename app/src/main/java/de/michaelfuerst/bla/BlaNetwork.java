@@ -691,20 +691,22 @@ public class BlaNetwork extends Service implements Runnable {
 		if (result == null || result.equals("")) {
 			return;
 		}
-		try {
-			Log.d("Conversations", result);
-			JSONArray ja = new JSONArray(result);
-			conversations.clear();
-			conversationNicks.clear();
-			for (int i = 0; i < ja.length(); i++) {
-				conversations.add(((JSONObject) ja.get(i)).getString("name"));
-				conversationNicks.add(((JSONObject) ja.get(i))
+        synchronized (this) {
+		    try {
+			    Log.d("Conversations", result);
+			    JSONArray ja = new JSONArray(result);
+			    conversations.clear();
+			    conversationNicks.clear();
+			    for (int i = 0; i < ja.length(); i++) {
+				    conversations.add(((JSONObject) ja.get(i)).getString("name"));
+				    conversationNicks.add(((JSONObject) ja.get(i))
 						.getString("nick"));
-			}
-			saveConversations();
-		} catch (JSONException e1) {
-			e1.printStackTrace();
-		}
+			    }
+			    saveConversations();
+		    } catch (JSONException e1) {
+			    e1.printStackTrace();
+		    }
+        }
 	}
 
 	/*public LinkedList<String> getConversations() {
@@ -820,11 +822,13 @@ public class BlaNetwork extends Service implements Runnable {
 		if (conversations.size() == 0) {
 			updateConversations();
 		}
-		for (int i = 0; i < conversations.size(); i++) {
-			if (getConversationNickAt(i).equals(conversation)) {
-				name = conversations.get(i);
-			}
-		}
+        synchronized (this) {
+		    for (int i = 0; i < conversations.size(); i++) {
+			    if (getConversationNickAt(i).equals(conversation)) {
+				    name = conversations.get(i);
+			    }
+		    }
+        }
 		return name;
 	}
 
@@ -840,15 +844,18 @@ public class BlaNetwork extends Service implements Runnable {
 
 		PendingIntent resultIntent;
 		if (name != null && !conversation.equals("ERROR")) {
-			Intent intent = new Intent(getBaseContext(), Chat.class);
+            Log.d("Notification", conversation+"|"+name);
+			Intent intent = new Intent(this, Chat.class);
 			intent.putExtra("chatname", name);
 			intent.putExtra("chatnick", conversation);
-			resultIntent = PendingIntent.getActivity(getBaseContext(), 0,
-					intent, Notification.FLAG_AUTO_CANCEL);
+            Log.d("Notification", conversation+"|"+name);
+			resultIntent = PendingIntent.getActivity(this, 0,
+					intent, Notification.FLAG_AUTO_CANCEL | PendingIntent.FLAG_UPDATE_CURRENT);
 		} else {
+            Log.d("Notification", conversation+"|"+name);
 			Intent intent = new Intent(getBaseContext(), Conversation.class);
 			resultIntent = PendingIntent.getActivity(getBaseContext(), 0,
-					intent, Notification.FLAG_AUTO_CANCEL);
+					intent, Notification.FLAG_AUTO_CANCEL | PendingIntent.FLAG_UPDATE_CURRENT);
 		}
 
 		notification.setLatestEventInfo(getBaseContext(), name, text,

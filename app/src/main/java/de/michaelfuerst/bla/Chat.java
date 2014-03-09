@@ -122,8 +122,12 @@ public class Chat extends Activity {
 		// Show the Up button in the action bar.
 		setupActionBar();
 		Intent intent = getIntent();
+
 		nick = intent.getStringExtra("chatnick");
 		name = intent.getStringExtra("chatname");
+
+        Log.d("Chat", nick+"|"+name);
+
 		setTitle(name);
 
 		networkAdapter = BlaNetwork.getInstance();
