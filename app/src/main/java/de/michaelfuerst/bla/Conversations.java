@@ -80,6 +80,11 @@ public class Conversations extends Activity implements MessageListener {
 
 			networkAdapter.setActiveConversation(null);
 			networkAdapter.attachMessageListener(this);
+
+            UpdateApp updater = new UpdateApp();
+            updater.setContext(getApplicationContext());
+            updater.execute(BlaNetwork.UPDATE_SERVER);
+
 		}
 		setContentView(R.layout.activity_conversations);
 	}

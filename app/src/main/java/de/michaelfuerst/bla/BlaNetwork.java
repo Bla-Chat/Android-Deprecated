@@ -57,7 +57,8 @@ import android.util.Log;
  * @version 1.0
  */
 public class BlaNetwork extends Service implements Runnable {
-	private static BlaNetwork instance = null;
+    public static final String UPDATE_SERVER = "https://raw.github.com/penguinmenac3/BlaChat/master/app";
+    private static BlaNetwork instance = null;
 
 	public final static String SEPARATOR = "◘";
 	public final static String EOL = "ﺿ";
@@ -171,7 +172,7 @@ public class BlaNetwork extends Service implements Runnable {
 
 		UpdateApp updater = new UpdateApp();
 		updater.setContext(getApplicationContext());
-		updater.execute("https://raw.github.com/penguinmenac3/BlaChat/master/app");
+		updater.execute(UPDATE_SERVER);
 		try {
 			runService();
 		} catch (NullPointerException e) {
