@@ -26,7 +26,7 @@ import android.util.Log;
  * 
  */
 public class UpdateApp extends AsyncTask<String, Void, Void> {
-	public static final String VERSION = "1.2.1.2";
+	public static final String VERSION = "1.2.1.3";
 	private Context context;
 
 	public void setContext(Context contextf) {
@@ -55,7 +55,7 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
                 String[] versions = VERSION.split("\\.");
 
 				if (split.length > 2 && versions.length > 2 && isLargerOrEqual(split, versions)) {
-                    Log.d("UpdateApp", "Your version is newer than min supported version.");
+                    Log.d("UpdateApp", "Your version is still supported.");
 					return false;
 				}
 			}
