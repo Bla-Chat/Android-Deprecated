@@ -17,11 +17,19 @@ Features
 Bla chat supports multiple conversations with any amount of users.
 
 It supports:
+
 *Plain text mssages
+
 *Photos
+
 *Images from galery
+
 *Notifications
+
 *Groups (with unlimited users)
+
 *Auto-updates
+
 *Encrypted connection
+
 *Any server can be used
