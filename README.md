@@ -3,6 +3,8 @@ BlaChat
 
 A secure and open source android chat application, to give you insight what happens to your data.
 
+And all implemented in only about 3000 to 4000 lines of code.
+
 It works with any server, that implements the protocol it uses.
 Currently the only software implementing this protocol is BlaChatServer (https://github.com/penguinmenac3/BlaChat-Server).
 
@@ -24,7 +26,7 @@ It supports:
 
 *Images from galery
 
-*Notifications
+*Notifications (Synched across devices)
 
 *Groups (with unlimited users)
 
@@ -32,4 +34,4 @@ It supports:
 
 *Encrypted connection
 
-*Any server can be used
+*Any server can be used (username@server for login)
