@@ -35,3 +35,16 @@ It supports:
 *Encrypted connection
 
 *Any server can be used (username@server for login)
+
+
+Related work and projects
+=========================
+
+In early 2014 the underlying protocol was put into an extra project to ensure it is not developed for easy and hacky implementation but for performance and security. https://www.ssl-id.de/bla.f-online.net/api/XJCP-Spec.pdf
+
+To make developing clients easier there is now a java client side protocol implementation. https://github.com/penguinmenac3/XJCP-Interface
+
+There also exists an open source server implementation.
+https://github.com/penguinmenac3/BlaChat-Server
+
+The whole BlaChat-Project is more than 10k lines of code.
