@@ -1,20 +1,26 @@
-BlaChat
-=======
+Bla-Chat Android APP
+====================
+
+<b> Will be replaced by <a href="https://github.com/Bla-Chat/smartphone">Bla-Chat Smartphone</a></b>
 
 A secure and open source android chat application, to give you insight what happens to your data.
 
 And all implemented in only about 3000 to 4000 lines of code.
 
-It works with any server, that implements the protocol it uses.
-Currently the only software implementing this protocol is BlaChatServer (https://github.com/penguinmenac3/BlaChat-Server).
+Compatible with servers supporting the xjcp-protocol.
+Currently the only software implementing this protocol is BlaChatServer (https://github.com/Bla-Chat/server).
 
-Protocol
-========
+![Bla Chat Messages](http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidMessages.png)
 
-Bla chat is based on XJCP (Extensible JSON Chat Protocol).
+![Bla Chat Chats](http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidChats.png)
 
-Features
-========
+## Installation
+
+<a href="https://fuersts.homeip.net/bla.apk">Download</a> the apk.
+
+Install it. You may need to allow apps from unknown sources in the options of your phone.
+
+## Features
 
 Bla chat supports multiple conversations with any amount of users.
 
@@ -36,15 +42,12 @@ It supports:
 
 *Any server can be used (username@server for login)
 
+## Contributing
 
-Related work and projects
-=========================
+Contribute by submitting issues for bugs you find with a link to the line of code causing it and a suggestion for improvement.
 
-In early 2014 the underlying protocol was put into an extra project to ensure it is not developed for easy and hacky implementation but for performance and security. https://www.ssl-id.de/bla.f-online.net/api/XJCP-Spec.pdf
+## Troubleshooting
 
-To make developing clients easier there is now a java client side protocol implementation. https://github.com/penguinmenac3/XJCP-Interface
+I cannot install the app! You may need to allow apps from unknown sources in the options of your phone.
 
-There also exists an open source server implementation.
-https://github.com/penguinmenac3/BlaChat-Server
-
-The whole BlaChat-Project is more than 10k lines of code.
+The app does not do xyz! Update the app and try it again, if it still does not work, write a detailed description what you did (starting with how you opened the app and every touch since then) and submit it as an issue. Screenshots help a lot. 
