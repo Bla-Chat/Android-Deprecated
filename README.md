@@ -16,7 +16,7 @@ Currently the only software implementing this protocol is BlaChatServer (https:/
 
 ## Installation
 
-<a href="https://fuersts.homeip.net/bla.apk">Download</a> the apk.
+<a href="https://github.com/Bla-Chat/Android/blob/master/app/bla.apk?raw=true">Download</a> the apk.
 
 Install it. You may need to allow apps from unknown sources in the options of your phone.
 
