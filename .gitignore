@@ -4,3 +4,6 @@
 /app/build
 /.gradle
 /.idea/workspace.xml
+*Thumbs.db
+*.iml
+/build

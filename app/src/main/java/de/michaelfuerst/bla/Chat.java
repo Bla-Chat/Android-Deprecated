@@ -5,7 +5,6 @@ import java.io.File;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.util.Log;
@@ -387,8 +386,8 @@ public class Chat extends Activity {
 		
 		final AutoBufferingImageView iv = new AutoBufferingImageView(this, false);
 		String preFile = path.split("/")[path.split("/").length - 1];
-		final String filename = Environment.getExternalStorageDirectory()
-				+ "/Pictures/BlaChat/" + preFile.split("\\.")[0] + ".png";
+		final String filename = getApplicationInfo().dataDir
+				+ "/Pictures/" + preFile.split("\\.")[0] + ".png";
 		iv.setOnTouchListener(new OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
@@ -447,8 +446,7 @@ public class Chat extends Activity {
 		return true;
 	}
 
-	private static String tmp_image = Environment.getExternalStorageDirectory()
-			+ "/Pictures/BlaChat/tmp.png";
+	private static String tmp_image = "/Pictures/tmp.png";
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -464,7 +462,7 @@ public class Chat extends Activity {
 			pickIntent.setAction(Intent.ACTION_GET_CONTENT);
 			Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 			takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-					Uri.fromFile(new File(tmp_image)));
+					Uri.fromFile(new File(getApplicationInfo().dataDir + tmp_image)));
 			String pickTitle = "Select or take a new Picture"; // Or get from
 			// strings.xml
 			Intent chooserIntent = Intent.createChooser(pickIntent, pickTitle);
@@ -480,7 +478,7 @@ public class Chat extends Activity {
 			Intent takePhotoIntent2 = new Intent(
 					MediaStore.ACTION_IMAGE_CAPTURE);
 			takePhotoIntent2.putExtra(MediaStore.EXTRA_OUTPUT,
-					Uri.fromFile(new File(tmp_image)));
+					Uri.fromFile(new File(getApplicationInfo().dataDir + tmp_image)));
 			String pickTitle2 = "Select or take a new Picture"; // Or get from
 			// strings.xml
 			Intent chooserIntent2 = Intent.createChooser(pickIntent2,
@@ -599,7 +597,7 @@ public class Chat extends Activity {
 						}
 					}.execute();
 				} else {
-					final String imageFilePath = tmp_image;
+					final String imageFilePath = getApplicationInfo().dataDir + tmp_image;
 					Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
 							.show();
 					final Chat that = this;

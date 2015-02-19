@@ -50,6 +50,7 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 /**
  * Retrieves and sends network messages.
@@ -58,13 +59,13 @@ import android.util.Log;
  * @version 1.0
  */
 public class BlaNetwork extends Service implements Runnable {
-    public static final String UPDATE_SERVER = "https://raw.github.com/penguinmenac3/BlaChat/master/app";
+    public static final String UPDATE_SERVER = "https://raw.github.com/Bla-Chat/Android/master/app";
     private static BlaNetwork instance = null;
 
 	public final static String SEPARATOR = "◘";
 	public final static String EOL = "ﺿ";
 	public final static int CONVERSATION_PARAMETERS = 4;
-	public final static String DEFAULT_BLA_SERVER = "https://www.ssl-id.de/bla.f-online.net";
+	public final static String DEFAULT_BLA_SERVER = "https://www.ssl-id.de/bla.f-online.net/api";
     private static String server = null;
 
 	private LinkedList<MessageListener> listeners = new LinkedList<MessageListener>();
@@ -104,12 +105,7 @@ public class BlaNetwork extends Service implements Runnable {
             server = preferences.getString("bla_server", DEFAULT_BLA_SERVER);
         }
 
-        String separator = "";
-        if (!server.endsWith("/")) {
-            separator = "/";
-        }
-
-        return server + separator + "api";
+        return server;
     }
 
     public void setActiveConversation(String newConversation) {
@@ -135,24 +131,6 @@ public class BlaNetwork extends Service implements Runnable {
 		synchronized (BlaNetwork.class) {
 			BlaNetwork.class.notifyAll();
 		}
-		
-		// EMERGENCY WAKER
-		/*new Thread () {
-			@Override
-			public void run() {
-				while (true) {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					synchronized (BlaNetwork.class) {
-						BlaNetwork.class.notifyAll();
-					}
-				}
-			}
-		}.start();
-		*/
 	}
 
 	public static BlaNetwork getInstance() {
@@ -191,42 +169,44 @@ public class BlaNetwork extends Service implements Runnable {
         synchronized (BlaNetwork.class) {
             BlaNetwork.class.notifyAll();
         }
-		status = 120;
+		status = 500;
 		if (!isReady) {
-			LoginNetworkThread t = new LoginNetworkThread(this);
-			t.start();
-			try {
-				t.join();
-				synchronized (BlaNetwork.class) {
-					while (!isReady) {
-						BlaNetwork.class.wait();
-					}
-				}
-			} catch (InterruptedException e) {
-                Log.d("Interruptedexception", "We were interrupted!");
-                return;
-			}
+            if (canLogin()) {
+                LoginNetworkThread t = new LoginNetworkThread(this);
+                t.start();
+                try {
+                    t.join();
+                } catch (InterruptedException e) {
+                    Log.d("Interruptedexception", "We were interrupted!");
+                    return;
+                }
+            }
+            synchronized (BlaNetwork.class) {
+                while (!isReady) {
+                    try {
+                        BlaNetwork.class.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
 		}
 
 		setRunning(true);
 		tryToRetrieveOldMessages();
 		updateNotifications(false);
-		SharedPreferences app_preferences = PreferenceManager
-				.getDefaultSharedPreferences(this);
+        SharedPreferences app_preferences = PreferenceManager
+                .getDefaultSharedPreferences(this);
 		SharedPreferences.Editor editor = app_preferences.edit();
 		editor.putString("id", id);
 		editor.commit();
 		while (status > 0) {
-			if (status < 120) {
-				status += 10;
-			} else if (status < 300) { // slightly increase status
-				status += 20;
-			} else if (status < 1500) { // make a cut to inactivity
-				status = 1500;
-			} else if (status < 3000) { // increase to max
-				status += 500;
+			if (status < 12000) {
+				status += 1000;
+			} else if (status < 30000) { // slightly increase status
+				status += 2000;
 			} else {
-				status = 3000; // 5 minute lock
+				status = 120000; // 2 minute lock
 			}
 
             int syncFrequency = Integer.parseInt(app_preferences.getString("sync_frequency", "2"));
@@ -265,8 +245,8 @@ public class BlaNetwork extends Service implements Runnable {
             }
 
 			try {
-				Thread.sleep(tmpstatus * 100);
-			} catch (Exception e) {
+				Thread.sleep(tmpstatus);
+            } catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -596,13 +576,12 @@ public class BlaNetwork extends Service implements Runnable {
 	 * Tries a login procedure. When the caller does not need to do anything,
 	 * true is returned. When false is returned you should call this method
 	 * again after some time.
-	 * 
-	 * @param parent The context of the caller.
+	 *
 	 * @return Weather the login was successful.
 	 */
-	public boolean tryLogin(Context parent) {
+	public boolean tryLogin() {
 		SharedPreferences app_preferences = PreferenceManager
-				.getDefaultSharedPreferences(parent);
+				.getDefaultSharedPreferences(this);
 
 		if (nick == null || pw == null) {
 			nick = app_preferences.getString("nick", nick);
@@ -783,20 +762,24 @@ public class BlaNetwork extends Service implements Runnable {
 		return isRunning;
 	}
 
+    public boolean isReady() {
+        return isReady;
+    }
+
 	public boolean isOnline() {
 		return !offline;
 	}
 
 	public void requestPause() {
-		setStatus(110);
+		setStatus(10000);
 	}
 
 	public void requestResume() {
-		setStatus(2);
+		setStatus(200);
 	}
 
 	public void requestResumeLowFrequency() {
-		setStatus(110);
+		setStatus(10000);
 	}
 
 	LinkedList<LocalNotification> notifications = new LinkedList<LocalNotification>();
@@ -1597,5 +1580,15 @@ public class BlaNetwork extends Service implements Runnable {
 		}
 		Log.d("ERROR", result);
 		return result;
+    }
+
+    public boolean canLogin() {
+        SharedPreferences app_preferences = PreferenceManager
+                .getDefaultSharedPreferences(this);
+        if (nick == null || pw == null) {
+            nick = app_preferences.getString("nick", nick);
+            pw = app_preferences.getString("pw", pw);
+        }
+        return pw != null && nick != null;
     }
 }

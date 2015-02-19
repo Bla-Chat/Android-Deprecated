@@ -50,22 +50,24 @@ public class Conversations extends Activity implements MessageListener {
 							try {
 								BlaNetwork.class.wait();
 							} catch (InterruptedException e) {
-								break;
+								return;
 							}
 						}
-					}
-					networkAdapter = BlaNetwork.getInstance();
-					// Sleep 1 second to give login time.
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
+                        networkAdapter = BlaNetwork.getInstance();
+                        while (!networkAdapter.isReady() && networkAdapter.canLogin()) {
+                            try {
+                                BlaNetwork.class.wait();
+                            } catch (InterruptedException e) {
+                                return;
+                            }
+                        }
 					}
 
-					if (!networkAdapter.isRunning()) {
-						LoginNetworkThread t = new LoginNetworkThread(that);
-						t.start();
-					}
+                    if (!networkAdapter.canLogin() && !networkAdapter.isRunning()) {
+                        Intent intent = new Intent(that.getApplicationContext(),
+                                Login.class);
+                        that.startActivity(intent);
+                    }
 
 					networkAdapter.setActiveConversation(null);
 					networkAdapter.updateConversations();
@@ -73,10 +75,13 @@ public class Conversations extends Activity implements MessageListener {
 				}
 			}.start();
 		} else {
-			if (!networkAdapter.isRunning()) {
-				LoginNetworkThread t = new LoginNetworkThread(this);
-				t.start();
-			}
+			if (!networkAdapter.isRunning() && !networkAdapter.canLogin()) {
+                if (!networkAdapter.canLogin() && !networkAdapter.isRunning()) {
+                    Intent intent = new Intent(this.getApplicationContext(),
+                            Login.class);
+                    this.startActivity(intent);
+                }
+            }
 
 			networkAdapter.setActiveConversation(null);
 			networkAdapter.attachMessageListener(this);

@@ -16,7 +16,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Environment;
 import android.util.Log;
 import android.util.TypedValue;
 
@@ -77,11 +76,10 @@ public class LocalResourceManager {
 		if (!map[i].containsKey(path)
 				|| ((BitmapDrawable) map[i].get(path)).getBitmap().isRecycled()) {
 			String preFile = path.split("/")[path.split("/").length - 1];
-			final String filename = Environment.getExternalStorageDirectory()
-					+ "/Pictures/BlaChat/" + preFile.split("\\.")[0] + ".png";
+            final String filename = ctx.getApplicationInfo().dataDir + "/Pictures/" + preFile.split("\\.")[0] + ".png";
 
-			File sysPath = new File(Environment.getExternalStorageDirectory()
-					+ "/Pictures/BlaChat");
+			File sysPath = new File(ctx.getApplicationInfo().dataDir
+					+ "/Pictures");
 			if (!sysPath.exists()) {
 				if(!sysPath.mkdirs()) return null;
 			}
