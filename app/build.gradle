@@ -1,14 +1,6 @@
 apply plugin: 'android'
 
 android {
-    signingConfigs {
-        Penguinmenac3 {
-            keyAlias 'penguinmenac3'
-            keyPassword 'z7gr#edn'
-            storeFile file('C:/Users/Michael/Documents/keyfile.kdbx')
-            storePassword 'z7gr#edn'
-        }
-    }
     compileSdkVersion 21
     buildToolsVersion '21.1.2'
     defaultConfig {
