@@ -53,7 +53,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.michaelfuerst.xjcp.XJCP;
-import net.michaelfuerst.xjcp.XJCPImpl;
 
 /**
  * Retrieves and sends network messages.
@@ -133,6 +132,7 @@ public class BlaNetwork extends Service implements Runnable {
 		lastMessages = new HashMap<String, String>();
 
         XJCP xjcp;
+        Log.d("XJCP", "XJCP Initialized!");
 		synchronized (BlaNetwork.class) {
 			BlaNetwork.class.notifyAll();
 		}
