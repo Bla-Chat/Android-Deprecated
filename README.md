@@ -21,32 +21,20 @@ Install it. You may need to allow apps from unknown sources in the options of yo
 Bla chat supports multiple conversations with any amount of users.
 
 It supports:
-
-*Plain text mssages
-
-*Photos
-
-*Images from galery
-
-*Notifications (Synched across devices)
-
-*Groups (with unlimited users)
-
-*Auto-updates
-
-*Encrypted connection
-
-*Any server can be used (username@server for login)
-
-*Configurable sync aggressiveness and wlan only mode
+* Plain text mssages
+* Photos
+* Images from galery
+* Notifications (Synched across devices)
+* Groups (with unlimited users)
+* Auto-updates
+* Encrypted connection
+* Any server can be used (username@server for login)
+* Configurable sync aggressiveness and wlan only mode
 
 Upcoming:
-
-*Local History (offline mode)
-
-*LED support for notifications
-
-*Multimedia Notifications and multi-message notifications
+* Local History (offline mode)
+* LED support for notifications
+* Multimedia Notifications and multi-message notifications
 
 ## Contributing
 
