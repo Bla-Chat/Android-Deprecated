@@ -52,6 +52,9 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import net.michaelfuerst.xjcp.XJCP;
+import net.michaelfuerst.xjcp.XJCPImpl;
+
 /**
  * Retrieves and sends network messages.
  * 
@@ -128,6 +131,8 @@ public class BlaNetwork extends Service implements Runnable {
 		conversationNicks = new LinkedList<String>();
 		markedConversations = new LinkedList<String>();
 		lastMessages = new HashMap<String, String>();
+
+        XJCP xjcp;
 		synchronized (BlaNetwork.class) {
 			BlaNetwork.class.notifyAll();
 		}

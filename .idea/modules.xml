@@ -2,9 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/Android.iml" filepath="$PROJECT_DIR$/Android.iml" />
       <module fileurl="file://$PROJECT_DIR$/BlaChat.iml" filepath="$PROJECT_DIR$/BlaChat.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/bla-chat-android.iml" filepath="$PROJECT_DIR$/bla-chat-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../PC/pc.iml" filepath="$PROJECT_DIR$/../PC/pc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/xjcp-lib/xjcp-lib.iml" filepath="$PROJECT_DIR$/xjcp-lib/xjcp-lib.iml" />
     </modules>
   </component>
 </project>
