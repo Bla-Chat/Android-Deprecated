@@ -1,8 +1,6 @@
 Bla-Chat Android APP
 ====================
 
-<b> Will be replaced by <a href="https://github.com/Bla-Chat/smartphone">Bla-Chat Smartphone</a></b>
-
 A secure and open source android chat application, to give you insight what happens to your data.
 
 And all implemented in only about 3000 to 4000 lines of code.
@@ -41,6 +39,16 @@ It supports:
 *Encrypted connection
 
 *Any server can be used (username@server for login)
+
+*Configurable sync aggressiveness and wlan only mode
+
+Upcoming:
+
+*Local History (offline mode)
+
+*LED support for notifications
+
+*Multimedia Notifications and multi-message notifications
 
 ## Contributing
 
