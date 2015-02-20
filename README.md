@@ -1,8 +1,6 @@
 Bla-Chat Android APP
 ====================
 
-<b> Will be replaced by <a href="https://github.com/Bla-Chat/smartphone">Bla-Chat Smartphone</a></b>
-
 A secure and open source android chat application, to give you insight what happens to your data.
 
 And all implemented in only about 3000 to 4000 lines of code.
@@ -10,9 +8,7 @@ And all implemented in only about 3000 to 4000 lines of code.
 Compatible with servers supporting the xjcp-protocol.
 Currently the only software implementing this protocol is BlaChatServer (https://github.com/Bla-Chat/server).
 
-![Bla Chat Messages](http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidMessages.png)
-
-![Bla Chat Chats](http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidChats.png)
+<p><a href="http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidMessages.png"><img src="http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidMessages.png" height="400" target="_blank" /></a> <a href="http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidChats.png"><img src="http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidChats.png" height="400" target="_blank" /></a></p>
 
 ## Installation
 
@@ -25,22 +21,20 @@ Install it. You may need to allow apps from unknown sources in the options of yo
 Bla chat supports multiple conversations with any amount of users.
 
 It supports:
+* Plain text mssages
+* Photos
+* Images from galery
+* Notifications (Synched across devices)
+* Groups (with unlimited users)
+* Auto-updates
+* Encrypted connection
+* Any server can be used (username@server for login)
+* Configurable sync aggressiveness and wlan only mode
 
-*Plain text mssages
-
-*Photos
-
-*Images from galery
-
-*Notifications (Synched across devices)
-
-*Groups (with unlimited users)
-
-*Auto-updates
-
-*Encrypted connection
-
-*Any server can be used (username@server for login)
+Upcoming:
+* Local History (offline mode)
+* LED support for notifications
+* Multimedia Notifications and multi-message notifications
 
 ## Contributing
 
