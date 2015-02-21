@@ -52,8 +52,8 @@
 
         <ImageView
             android:id="@+id/imageView1"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
             android:src="@drawable/ic_launcher" />
     </LinearLayout>
 

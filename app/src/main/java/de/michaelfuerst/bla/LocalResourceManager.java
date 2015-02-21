@@ -34,34 +34,6 @@ public class LocalResourceManager {
 		usages[i].put(key, value);
 	}
 
-	/*public static void decPriority(String key, int i) {
-		if (usages[i] == null) {
-			usages[i] = new HashMap<String, Integer>();
-		}
-		if (map[i] == null) {
-			map[i] = new HashMap<String, Drawable>();
-		}
-		if (!usages[i].containsKey(key)) {
-			usages[i].put(key, 0);
-		}
-		if (usages[i].get(key) >= 0) {
-			usages[i].put(key, usages[i].get(key) - 1);
-		} else if (map[i].get(key) != null) {
-			((BitmapDrawable) map[i].get(key)).getBitmap().recycle();
-			map[i].remove(key);
-			Log.d("Remove", "Removed:" + key);
-		}
-	}
-
-	/*public static void decPriority(int i) {
-		if (usages[i] == null) {
-			usages[i] = new HashMap<String, Integer>();
-		}
-		for (String k : usages[i].keySet()) {
-			decPriority(k, i);
-		}
-	}*/
-
 	@SuppressWarnings("deprecation")
 	public static Drawable getDrawable(Context ctx, final String path,
 			double maxSize, int i) {

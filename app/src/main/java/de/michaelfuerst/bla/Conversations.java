@@ -3,6 +3,7 @@ package de.michaelfuerst.bla;
 import java.util.LinkedList;
 import java.util.List;
 
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -15,8 +16,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -204,8 +207,8 @@ public class Conversations extends Activity implements MessageListener {
 					conversationData.addAll(loadAsConversations(that));
 					LinearLayout ll = new LinearLayout(that);
 					ll.setOrientation(LinearLayout.VERTICAL);
-                    for (ConversationViewData aConversationData : conversationData) {
-                        ll.addView(new ConversationView(that, aConversationData, BlaNetwork.getUser(that)));
+                    for (final ConversationViewData aConversationData : conversationData) {
+                        ll.addView(ConversationView.createChat(that, aConversationData, BlaNetwork.getUser(that)));
                         ll.addView(new Delimiter(that));
                     }
 					Log.d("Update2", "Updating conversation view.");

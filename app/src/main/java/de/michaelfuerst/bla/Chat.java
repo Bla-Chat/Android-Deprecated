@@ -384,7 +384,7 @@ public class Chat extends Activity {
 
 	private View getImageView(final String path) {
 		
-		final AutoBufferingImageView iv = new AutoBufferingImageView(this, false);
+		final ImageView iv = new ImageView(this);
 		String preFile = path.split("/")[path.split("/").length - 1];
 		final String filename = getApplicationInfo().dataDir
 				+ "/Pictures/" + preFile.split("\\.")[0] + ".png";
@@ -419,7 +419,6 @@ public class Chat extends Activity {
 		} else {
 			iv.setBackgroundColor(Color.LTGRAY);
 		}
-		iv.setImage(path, IMAGE_MAX_WIDTH, 0);
 		return iv;
 	}
 
@@ -706,7 +705,7 @@ public class Chat extends Activity {
 				r.getDisplayMetrics());
 		final int size = (int)(PROFILE_IMAGE_SIZE * px);
 		
-		final AutoBufferingImageView iv = new AutoBufferingImageView(ctx, false);
+		final ImageView iv = new ImageView(ctx);
 		iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
 		//iv.setAdjustViewBounds(true);
 		iv.setMaxWidth(size);
@@ -733,16 +732,13 @@ public class Chat extends Activity {
 				public void onPostExecute(Drawable image) {
 					if (image == null) {
 						iv.setBackgroundColor(Color.rgb(0, 0, 0));
-						iv.setImage("none", size, 0);
 					} else {
 						iv.setImageDrawable(image);
-						iv.setImage(p, size, 0);
 					}
 				}
 			}.execute();
 		} else {
 			iv.setImageDrawable(image);
-			iv.setImage(path, size, 0);
 		}
 		return iv;
 	}
