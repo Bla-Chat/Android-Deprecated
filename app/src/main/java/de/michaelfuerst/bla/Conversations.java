@@ -3,7 +3,6 @@ package de.michaelfuerst.bla;
 import java.util.LinkedList;
 import java.util.List;
 
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -16,10 +15,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -30,8 +27,9 @@ public class Conversations extends Activity implements MessageListener {
 	private BlaNetwork networkAdapter = null;
 	private boolean isAlive = false;
 	private final List<ConversationViewData> conversationData = new LinkedList<ConversationViewData>();
+    private LocalResourceManager manager = new LocalResourceManager();
 
-	@Override
+    @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d("Created", "Conversations created!");
@@ -47,24 +45,7 @@ public class Conversations extends Activity implements MessageListener {
 			new Thread() {
 				@Override
 				public void run() {
-					synchronized (BlaNetwork.class) {
-						while (BlaNetwork.getInstance() == null) {
-							networkAdapter = null;
-							try {
-								BlaNetwork.class.wait();
-							} catch (InterruptedException e) {
-								return;
-							}
-						}
-                        networkAdapter = BlaNetwork.getInstance();
-                        while (!networkAdapter.isReady() && networkAdapter.canLogin()) {
-                            try {
-                                BlaNetwork.class.wait();
-                            } catch (InterruptedException e) {
-                                return;
-                            }
-                        }
-					}
+					networkAdapter = BlaNetwork.getInstanceInitialized();
 
                     if (!networkAdapter.canLogin() && !networkAdapter.isRunning()) {
                         Intent intent = new Intent(that.getApplicationContext(),
@@ -203,12 +184,15 @@ public class Conversations extends Activity implements MessageListener {
 				@Override
 				protected LinearLayout doInBackground(Void... params) {
 					Log.d("Update", "Updating conversation view.");
+                    networkAdapter = BlaNetwork.getInstanceInitialized();
+                    if (!networkAdapter.canLogin()) return null;
+
 					conversationData.clear();
 					conversationData.addAll(loadAsConversations(that));
 					LinearLayout ll = new LinearLayout(that);
 					ll.setOrientation(LinearLayout.VERTICAL);
                     for (final ConversationViewData aConversationData : conversationData) {
-                        ll.addView(ConversationView.createChat(that, aConversationData, BlaNetwork.getUser(that)));
+                        ll.addView(ConversationView.createChat(manager, that, aConversationData, BlaNetwork.getUser(that)));
                         ll.addView(new Delimiter(that));
                     }
 					Log.d("Update2", "Updating conversation view.");
@@ -216,6 +200,7 @@ public class Conversations extends Activity implements MessageListener {
 				}
 
 				protected void onPostExecute(LinearLayout ll) {
+                    if (ll == null) return;
 					ScrollView scrollView = (ScrollView) findViewById(R.id.ScrollView1);
 					scrollView.removeAllViews();
 					scrollView.addView(ll);
@@ -226,10 +211,9 @@ public class Conversations extends Activity implements MessageListener {
 		}
 	}
 
-	@Override
+    @Override
 	public void onStop() {
 		isAlive = false;
-		LocalResourceManager.clear(1);
 		if (networkAdapter != null) {
 			networkAdapter.detachMessageListener(this);
 		}
@@ -249,6 +233,7 @@ public class Conversations extends Activity implements MessageListener {
                 temp += BlaNetwork.SEPARATOR + "false";
             }
             temp += BlaNetwork.SEPARATOR + current.lastMessage;
+            temp += BlaNetwork.SEPARATOR + current.lastMessageTime;
             temp += BlaNetwork.EOL;
         }
 
@@ -276,6 +261,7 @@ public class Conversations extends Activity implements MessageListener {
 				tmp.nick = splits[1];
 				tmp.marked = splits[2].equals("true");
 				tmp.lastMessage = splits[3];
+                tmp.lastMessageTime = splits[4];
 				result.add(tmp);
 			}
 		}

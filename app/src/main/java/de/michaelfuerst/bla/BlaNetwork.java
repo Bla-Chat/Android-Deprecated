@@ -14,8 +14,10 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -66,7 +68,7 @@ public class BlaNetwork extends Service implements Runnable {
 
 	public final static String SEPARATOR = "◘";
 	public final static String EOL = "ﺿ";
-	public final static int CONVERSATION_PARAMETERS = 4;
+	public final static int CONVERSATION_PARAMETERS = 5;
 	public final static String DEFAULT_BLA_SERVER = "https://www.ssl-id.de/bla.f-online.net/api";
     private static String server = null;
 
@@ -129,7 +131,8 @@ public class BlaNetwork extends Service implements Runnable {
 		conversations = new LinkedList<String>();
 		conversationNicks = new LinkedList<String>();
 		markedConversations = new LinkedList<String>();
-		lastMessages = new HashMap<String, String>();
+        lastMessages = new HashMap<String, String>();
+        lastMessagesTime = new HashMap<String, String>();
 
         XJCP xjcp;
         Log.d("XJCP", "XJCP Initialized!");
@@ -166,7 +169,7 @@ public class BlaNetwork extends Service implements Runnable {
 		try {
 			runService();
 		} catch (NullPointerException e) {
-			addNotification("ERROR", e.getMessage(), true);
+			addNotification("ERROR", e.getMessage(), true, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 		}
 	}
 
@@ -283,7 +286,7 @@ public class BlaNetwork extends Service implements Runnable {
 		String trigger = jo.getString("nick");
 		String text = jo.getString("text");
 		if (type.equals("onMessage")) {
-			onReceiveMessage(trigger, msg, text);
+			onReceiveMessage(trigger, msg, text, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 		} else if (type.equals("onMessageHandled")) {
 			unmarkLocal(msg);
 			removeNotification(msg);
@@ -316,7 +319,7 @@ public class BlaNetwork extends Service implements Runnable {
      *            The person who triggered the event.
 	 */
 	private void onReceiveMessage(String trigger, String conversation,
-			String text) {
+			String text, String time) {
 		if (!conversation.equals(this.activeConversation) || status >= 120) {
 			if (text.startsWith("#image")) {
 				text = "Image received";
@@ -325,7 +328,7 @@ public class BlaNetwork extends Service implements Runnable {
 			} else if (text.startsWith("#file")) {
 				text = "File received";
 			}
-			addNotification(conversation, text, true);
+			addNotification(conversation, text, true, time);
 			status = 120;
 		}
 		// sort conversations list
@@ -339,7 +342,7 @@ public class BlaNetwork extends Service implements Runnable {
 			saveConversations();
 		}
 		
-		setLastMessage(conversation, text);
+		setLastMessage(conversation, text, time);
 		Chat.saveChatAs(this, conversation, getChat(conversation));
 		for (MessageListener l : listeners) {
 			l.onMessageReceived(trigger, conversation);
@@ -790,7 +793,7 @@ public class BlaNetwork extends Service implements Runnable {
 	LinkedList<LocalNotification> notifications = new LinkedList<LocalNotification>();
 
 	public void addNotification(final String conversation, final String text,
-			final boolean vibrate) {
+			final boolean vibrate, final String time) {
 		LocalNotification notification = new LocalNotification();
 		notification.conversation = conversation;
 		String name = getNameOfConversation(conversation);
@@ -798,7 +801,7 @@ public class BlaNetwork extends Service implements Runnable {
 			name = conversation;
 		} else {
 			mark(conversation);
-			setLastMessage(conversation, text);
+			setLastMessage(conversation, text, time);
 		}
 		notification.name = name;
 		notification.message = text;
@@ -1038,6 +1041,7 @@ public class BlaNetwork extends Service implements Runnable {
 			temp.nick = getConversationNickAt(i);
 			temp.marked = getMarkedConversations().contains(temp.nick);
 			temp.lastMessage = getLastMessage(temp.nick);
+            temp.lastMessageTime = getLastMessageTime(temp.nick);
 			list.add(temp);
 		}
 		Conversations.saveAsConversations(list, this);
@@ -1051,6 +1055,7 @@ public class BlaNetwork extends Service implements Runnable {
 		conversationNicks.clear();
 		markedConversations.clear();
 		lastMessages.clear();
+        lastMessagesTime.clear();
 		for (ConversationViewData temp : list) {
 			conversations.add(temp.name);
 			conversationNicks.add(temp.nick);
@@ -1058,6 +1063,7 @@ public class BlaNetwork extends Service implements Runnable {
 				markedConversations.add(temp.nick);
 			}
 			lastMessages.put(temp.nick, temp.lastMessage);
+            lastMessagesTime.put(temp.nick, temp.lastMessageTime);
 		}
 		Conversations.saveAsConversations(list, this);
 	}
@@ -1251,6 +1257,7 @@ public class BlaNetwork extends Service implements Runnable {
 	}*/
 
     private final HashMap<String, String> lastMessages;
+    private final HashMap<String, String> lastMessagesTime;
 
 	/*private LinkedList<String> reloadFiles = new LinkedList<String>();
 
@@ -1266,25 +1273,35 @@ public class BlaNetwork extends Service implements Runnable {
 		reloadFiles.remove(preFile);
 	}*/
 
-	public String getLastMessage(String nick) {
-		if (!lastMessages.containsKey(nick)) {
-			return " ";
-		}
-		String result = lastMessages.get(nick);
-		if (result.startsWith("#image")) {
-			result = "(image)";
-		} else if (result.startsWith("#video")) {
-			result = "(video)";
-		} else if (result.startsWith("#file")) {
-			result = "(file)";
-		} else if (result.startsWith("#hangout")) {
-			result = "(hangout)";
-		}
-		return result;
-	}
+    public String getLastMessage(String nick) {
+        if (!lastMessages.containsKey(nick)) {
+            return " ";
+        }
+        String result = lastMessages.get(nick);
+        if (result.startsWith("#image")) {
+            result = "(image)";
+        } else if (result.startsWith("#video")) {
+            result = "(video)";
+        } else if (result.startsWith("#file")) {
+            result = "(file)";
+        } else if (result.startsWith("#hangout")) {
+            result = "(hangout)";
+        }
+        return result;
+    }
 
-	public void setLastMessage(String nick, String message) {
+    public String getLastMessageTime(String nick) {
+        if (!lastMessagesTime.containsKey(nick)) {
+            return " ";
+        }
+        return lastMessagesTime.get(nick);
+    }
+
+	public void setLastMessage(String nick, String message, String time) {
 		lastMessages.put(nick, message);
+        if (time != null) {
+            lastMessagesTime.put(nick, time);
+        }
 		saveConversations();
         if (activity instanceof Conversations) {
             Conversations tmp = (Conversations)activity;
@@ -1595,5 +1612,26 @@ public class BlaNetwork extends Service implements Runnable {
             pw = app_preferences.getString("pw", pw);
         }
         return pw != null && nick != null;
+    }
+
+    public static BlaNetwork getInstanceInitialized() {
+        BlaNetwork networkAdapter;
+        synchronized (BlaNetwork.class) {
+            while ((networkAdapter = BlaNetwork.getInstance()) == null) {
+                try {
+                    BlaNetwork.class.wait();
+                } catch (InterruptedException e) {
+                    return null;
+                }
+            }
+            while (!networkAdapter.isReady() && networkAdapter.canLogin()) {
+                try {
+                    BlaNetwork.class.wait();
+                } catch (InterruptedException e) {
+                    return null;
+                }
+            }
+        }
+        return networkAdapter;
     }
 }

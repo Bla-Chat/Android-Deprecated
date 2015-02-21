@@ -21,13 +21,13 @@ import android.util.TypedValue;
 
 public class LocalResourceManager {
 	@SuppressWarnings("unchecked")
-	private static HashMap<String, Drawable>[] map = new HashMap[2];
+	private HashMap<String, Drawable>[] map = new HashMap[2];
 	@SuppressWarnings("unchecked")
-	private static HashMap<String, Integer>[] usages = new HashMap[2];
-	private static LinkedList<String> fetchQueue = new LinkedList<String>();
-	public static int maxPriority = 10;
+	private HashMap<String, Integer>[] usages = new HashMap[2];
+	private LinkedList<String> fetchQueue = new LinkedList<String>();
+	public int maxPriority = 10;
 
-	public static void setPriority(String key, int value, int i) {
+	public void setPriority(String key, int value, int i) {
 		if (usages[i] == null) {
 			usages[i] = new HashMap<String, Integer>();
 		}
@@ -35,7 +35,7 @@ public class LocalResourceManager {
 	}
 
 	@SuppressWarnings("deprecation")
-	public static Drawable getDrawable(Context ctx, final String path,
+	public Drawable getDrawable(Context ctx, final String path,
 			double maxSize, int i) {
 		Resources r = ctx.getResources();
 		double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
@@ -107,7 +107,7 @@ public class LocalResourceManager {
 		return map[i].get(path);
 	}
 
-	private static int calculateInSampleSize(BitmapFactory.Options options,
+	private int calculateInSampleSize(BitmapFactory.Options options,
 			double reqWidth, double reqHeight) {
 		// Raw height and width of image
 		final double height = options.outHeight;
@@ -129,16 +129,5 @@ public class LocalResourceManager {
 		}
 
 		return inSampleSize;
-	}
-
-	public static void clear(int i) {
-		if (map[i] == null) {
-			map[i] = new HashMap<String, Drawable>();
-		}
-		Set<String> keys = map[i].keySet();
-		for (String k : keys) {
-			((BitmapDrawable) map[i].get(k)).getBitmap().recycle();
-		}
-		map[i].clear();
 	}
 }

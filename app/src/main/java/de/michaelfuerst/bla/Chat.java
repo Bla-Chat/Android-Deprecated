@@ -67,6 +67,7 @@ public class Chat extends Activity {
 	private ChatMessage[] chatList;
 	//private boolean fotoReturn;
 	private boolean isSetImage = false;
+    private LocalResourceManager manager = new LocalResourceManager();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -209,7 +210,7 @@ public class Chat extends Activity {
 		chatList[0] = m;
 		isAlive = true;
 		drawHistory(chatList);
-		networkAdapter.setLastMessage(nick, message);
+		networkAdapter.setLastMessage(nick, message, m.time);
 	}
 
 	public void drawHistory(ChatMessage[] messages) {
@@ -412,7 +413,7 @@ public class Chat extends Activity {
 		iv.setMinimumHeight(res);
 		iv.setMinimumWidth(resW);
 		iv.setScaleType(ScaleType.CENTER_CROP);
-		Drawable image = LocalResourceManager.getDrawable(this, filename,
+		Drawable image = manager.getDrawable(this, filename,
 				IMAGE_MAX_WIDTH, 0);
 		if (image != null) {
 			iv.setImageDrawable(image);
@@ -687,15 +688,13 @@ public class Chat extends Activity {
 
 	@Override
 	public void onStop() {
-		LocalResourceManager.clear(0);
-
 		super.onStop();
 	}
 
 	public void setChatList(ChatMessage[] result) {
 		chatList = result;
 		if (result.length > 0 && result[0] != null) {
-			networkAdapter.setLastMessage(nick, result[0].message);
+			networkAdapter.setLastMessage(nick, result[0].message, result[0].time);
 		}
 	}
 
@@ -713,7 +712,7 @@ public class Chat extends Activity {
 		iv.setMinimumWidth(size);
 		iv.setMinimumWidth(size);
 
-		Drawable image = LocalResourceManager.getDrawable(ctx, path,
+		Drawable image = manager.getDrawable(ctx, path,
 				size, 0);
 
 		if (image == null) {
@@ -724,8 +723,7 @@ public class Chat extends Activity {
 				protected Drawable doInBackground(Void... params) {
 					p = BlaNetwork.getServer(ctx) + "/imgs/user.png";
 
-                    return LocalResourceManager.getDrawable(ctx, p,
-                            size, 0);
+                    return manager.getDrawable(ctx, p, size, 0);
 				}
 
 				@Override

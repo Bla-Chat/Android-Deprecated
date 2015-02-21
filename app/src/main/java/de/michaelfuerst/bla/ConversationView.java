@@ -6,16 +6,12 @@ package de.michaelfuerst.bla;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 /**
@@ -26,11 +22,11 @@ public class ConversationView {
 
 	private static final int PROFILE_IMAGE_SIZE = 64;
 	
-	public static View createChat(final Conversations parent, ConversationViewData d, String user) {
+	public static View createChat(LocalResourceManager manager, final Conversations parent, ConversationViewData d, String user) {
         final LinearLayout q = (LinearLayout)LinearLayout.inflate(parent, R.layout.view_chat, null);
 		final String name = d.name;
 		final String nick = d.nick;
-		createChilds(q, parent, name, nick, user);
+		createChilds(manager, q, parent, name, nick, user);
         q.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -69,7 +65,7 @@ public class ConversationView {
         return q;
 	}
 
-	private static void createChilds(LinearLayout q, Context parent, String name, String nick,
+	private static void createChilds(LocalResourceManager manager, LinearLayout q, Context parent, String name, String nick,
 			String user) {
 		String s[] = nick.split(",");
 		String localNick = nick;
@@ -87,9 +83,9 @@ public class ConversationView {
         ImageView iv = (ImageView)(q.findViewById(R.id.chatImage));
         String path = BlaNetwork.getServer(parent)
                 + "/imgs/profile_" + localNick + ".png";
-        Drawable preload = LocalResourceManager.getDrawable(parent, BlaNetwork.getServer(parent) + "/imgs/user.png",
+        Drawable preload = manager.getDrawable(parent, BlaNetwork.getServer(parent) + "/imgs/user.png",
                 PROFILE_IMAGE_SIZE, 1);
-        Drawable image = LocalResourceManager.getDrawable(parent, path,
+        Drawable image = manager.getDrawable(parent, path,
                 PROFILE_IMAGE_SIZE, 1);
         if (image != null) {
             iv.setImageDrawable(image);
@@ -98,10 +94,14 @@ public class ConversationView {
         }
 
         TextView t = (TextView)q.findViewById(R.id.chatName);
-		t.setText(name);
+        t.setText(name);
+
 
 		String text = BlaNetwork.getInstance().getLastMessage(nick);
         TextView t2 = (TextView)q.findViewById(R.id.chatMessage);
+        TextView t3 = (TextView)q.findViewById(R.id.chatTime);
+        t3.setText(BlaNetwork.getInstance().getLastMessageTime(nick));
+
 		if (BlaNetwork.getInstance().getMarkedConversations().contains(nick)) {
 			t2.setTextColor(Color.rgb(130, 200, 130));
 		} else {
