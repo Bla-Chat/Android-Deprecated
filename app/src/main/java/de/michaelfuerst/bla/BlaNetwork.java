@@ -464,7 +464,16 @@ public class BlaNetwork extends Service implements Runnable {
 				+ nick + "\" , \"password\": \"" + pw + "\" , \"id\": \"" + id
 				+ "\" , \"conversation\": \"" + conversation
 				+ "\", \"message\": \"" + message + "\"}}";
-		return submit(jsonString, getServer());
+        String result = submit(jsonString, getServer());
+        while (result.equals("ERROR")) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                return result;
+            }
+            result = submit(jsonString, getServer());
+        }
+		return result;
 	}
 
 	/**
@@ -1093,83 +1102,83 @@ public class BlaNetwork extends Service implements Runnable {
 	public void send(final Bitmap bmp, final String conversation) {
         boolean error = true;
         while (error) {
-            error = false;
-		String jsonString = "{\"type\":\"onData\", \"msg\":{\"user\":\"" + nick
-				+ "\" , \"password\": \"" + pw + "\", \"conversation\":\""
-				+ conversation + "\", \"type\":\"image\"}}";
-		try {
-			HttpURLConnection conn;
-			DataOutputStream dos;
-			DataInputStream dis = null;
-			URL url = new URL(getServer() + "/api.php");
-			// ------------------ CLIENT REQUEST
-
-			// open a URL connection to the Servlet
-			// Open a HTTP connection to the URL
-			conn = (HttpURLConnection) url.openConnection();
-			// Allow Inputs
-			conn.setDoInput(true);
-			// Allow Outputs
-			conn.setDoOutput(true);
-			// Don't use a cached copy.
-			conn.setUseCaches(false);
-			// Use a post method.
-			conn.setRequestMethod("POST");
-			conn.setRequestProperty("Content-Type",
-					"multipart/form-data;boundary=" + boundary);
-
-			dos = new DataOutputStream(conn.getOutputStream());
-
-			dos.writeBytes(twoHyphens + boundary + lineEnd);
-			dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\"; filename=\"image.png\""
-					+ lineEnd);
-			dos.writeBytes("Content-Type: text/xml" + lineEnd);
-			dos.writeBytes(lineEnd);
-			bmp.compress(CompressFormat.PNG, 100, dos);
-			bmp.recycle();
-
-			dos.writeBytes(lineEnd);
-			dos.writeBytes(twoHyphens + boundary + lineEnd);
-			dos.writeBytes("Content-Disposition: form-data; name=\"msg\""
-					+ lineEnd);
-			dos.writeBytes(lineEnd);
-			dos.writeBytes(jsonString);
-
-			// send multipart form data necessary after file data...
-			dos.writeBytes(lineEnd);
-			dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
-			dos.flush();
-			// ------------------ read the SERVER RESPONSE
-			try {
-				dis = new DataInputStream(conn.getInputStream());
-				StringBuilder response = new StringBuilder();
-
-				String line;
-				while ((line = dis.readLine()) != null) {
-					response.append(line).append('\n');
-				}
-
-				String result = response.toString();
-                Log.d("Image sending", result);
-			} finally {
-				if (dis != null)
-					dis.close();
-			}
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (ProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-            // Assume we have connection issues.
-            e.printStackTrace();
-            error = true;
+            String jsonString = "{\"type\":\"onData\", \"msg\":{\"user\":\"" + nick
+                    + "\" , \"password\": \"" + pw + "\", \"conversation\":\""
+                    + conversation + "\", \"type\":\"image\"}}";
             try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
-                return;
+                HttpURLConnection conn;
+                DataOutputStream dos;
+                DataInputStream dis = null;
+                URL url = new URL(getServer() + "/api.php");
+                // ------------------ CLIENT REQUEST
+
+                // open a URL connection to the Servlet
+                // Open a HTTP connection to the URL
+                conn = (HttpURLConnection) url.openConnection();
+                // Allow Inputs
+                conn.setDoInput(true);
+                // Allow Outputs
+                conn.setDoOutput(true);
+                // Don't use a cached copy.
+                conn.setUseCaches(false);
+                // Use a post method.
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type",
+                        "multipart/form-data;boundary=" + boundary);
+
+                dos = new DataOutputStream(conn.getOutputStream());
+
+                dos.writeBytes(twoHyphens + boundary + lineEnd);
+                dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\"; filename=\"image.png\""
+                        + lineEnd);
+                dos.writeBytes("Content-Type: text/xml" + lineEnd);
+                dos.writeBytes(lineEnd);
+                bmp.compress(CompressFormat.PNG, 100, dos);
+                bmp.recycle();
+
+                dos.writeBytes(lineEnd);
+                dos.writeBytes(twoHyphens + boundary + lineEnd);
+                dos.writeBytes("Content-Disposition: form-data; name=\"msg\""
+                        + lineEnd);
+                dos.writeBytes(lineEnd);
+                dos.writeBytes(jsonString);
+
+                // send multipart form data necessary after file data...
+                dos.writeBytes(lineEnd);
+                dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+                dos.flush();
+                // ------------------ read the SERVER RESPONSE
+                try {
+                    dis = new DataInputStream(conn.getInputStream());
+                    StringBuilder response = new StringBuilder();
+
+                    String line;
+                    while ((line = dis.readLine()) != null) {
+                        response.append(line).append('\n');
+                    }
+
+                    String result = response.toString();
+                    Log.d("Image sending", result);
+                } finally {
+                    if (dis != null)
+                        dis.close();
+                }
+                error = false;
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (ProtocolException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                // Assume we have connection issues.
+                e.printStackTrace();
+                error = true;
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) {
+                    ie.printStackTrace();
+                    return;
+                }
             }
-		}
         }
 	}
 
