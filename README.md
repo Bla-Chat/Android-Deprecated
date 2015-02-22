@@ -1,6 +1,8 @@
 Bla-Chat Android APP
 ====================
 
+<a href="https://github.com/Bla-Chat/Android/blob/master/app/bla.apk?raw=true">Download the apk.</a>
+
 A secure and open source android chat application, to give you insight what happens to your data.
 
 And all implemented in only about 3000 to 4000 lines of code.
