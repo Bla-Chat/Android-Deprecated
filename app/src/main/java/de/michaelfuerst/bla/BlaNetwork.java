@@ -52,7 +52,6 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import net.michaelfuerst.xjcp.XJCP;
 
@@ -246,7 +245,7 @@ public class BlaNetwork extends Service implements Runnable {
 					    }
 				    }
 			    } catch (JSONException e1) {
-				    e1.printStackTrace();
+                    // Quiet
 			    }
             } else {
                 tmpstatus = status;
@@ -276,7 +275,7 @@ public class BlaNetwork extends Service implements Runnable {
 				handleIncoming(jo);
 			}
 		} catch (JSONException e1) {
-			e1.printStackTrace();
+            // Quiet
 		}
 	}
 
@@ -388,10 +387,10 @@ public class BlaNetwork extends Service implements Runnable {
 			}
 		} catch (IOException e) {
             message = "ERROR";
-            Log.d("NetworkError", "ERROR: " + totalMessage);
+            // Quiet
 		} catch (JSONException e) {
 			message = "ERROR";
-			Log.d("NetworkError", "ERROR: " + totalMessage);
+            // Quiet
 		} catch (IllegalStateException e) {
             Context context = BlaNetwork.getInstance().getApplicationContext();
             if (context != null) {
@@ -580,6 +579,21 @@ public class BlaNetwork extends Service implements Runnable {
 		return submit(jsonString, getServer());
 	}
 
+    private boolean loadNickAndPw() {
+        try {
+            SharedPreferences app_preferences = PreferenceManager
+                    .getDefaultSharedPreferences(this);
+
+            if (nick == null || pw == null) {
+                nick = app_preferences.getString("nick", nick);
+                pw = app_preferences.getString("pw", pw);
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
 	/**
 	 * Tries a login procedure. When the caller does not need to do anything,
 	 * true is returned. When false is returned you should call this method
@@ -588,13 +602,7 @@ public class BlaNetwork extends Service implements Runnable {
 	 * @return Weather the login was successful.
 	 */
 	public boolean tryLogin() {
-		SharedPreferences app_preferences = PreferenceManager
-				.getDefaultSharedPreferences(this);
-
-		if (nick == null || pw == null) {
-			nick = app_preferences.getString("nick", nick);
-			pw = app_preferences.getString("pw", pw);
-		}
+        if (!loadNickAndPw()) return false;
 		
 		if (nick == null || pw == null) {
 			return false;
@@ -698,7 +706,7 @@ public class BlaNetwork extends Service implements Runnable {
 			    }
 			    saveConversations();
 		    } catch (JSONException e1) {
-			    e1.printStackTrace();
+                // Quiet
 		    }
         }
 	}
@@ -747,7 +755,8 @@ public class BlaNetwork extends Service implements Runnable {
 				out.add(c);
 			}
 		} catch (JSONException e1) {
-			e1.printStackTrace();
+            // Quiet
+            return null;
 		}
 		return out.toArray(new ChatMessage[out.size()]);
 	}
@@ -1384,7 +1393,7 @@ public class BlaNetwork extends Service implements Runnable {
 				contactNicks[i] = jo.getString("nick");
 			}
 		} catch (JSONException e) {
-			e.printStackTrace();
+            // Quiet
 			return;
 		}
 
@@ -1605,13 +1614,7 @@ public class BlaNetwork extends Service implements Runnable {
     }
 
     public boolean canLogin() {
-        SharedPreferences app_preferences = PreferenceManager
-                .getDefaultSharedPreferences(this);
-        if (nick == null || pw == null) {
-            nick = app_preferences.getString("nick", nick);
-            pw = app_preferences.getString("pw", pw);
-        }
-        return pw != null && nick != null;
+        return loadNickAndPw() && pw != null && nick != null;
     }
 
     public static BlaNetwork getInstanceInitialized() {

@@ -188,6 +188,7 @@ public class Chat extends Activity {
 
 	public static void saveChatAs(Context ctx, String nick,
 			ChatMessage[] chatList) {
+        if (chatList == null) return;
 		String temp = "";
         for (ChatMessage aChatList : chatList) {
             temp += aChatList.author + BlaNetwork.SEPARATOR
