@@ -1,6 +1,12 @@
 package de.michaelfuerst.bla;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -284,7 +290,7 @@ public class Chat extends Activity {
 				} else {
 					if (!(tmp < messages.length - 1 && c.time.substring(0, 10)
 							.equals(messages[tmp + 1].time.substring(0, 10)))) {
-						ll.addView(getTimestamp(c.time.substring(0, 10)));
+						ll.addView(getTimestamp(c.time));
 					}
 					vTime.setText(c.time.substring(11, 16));
 				}
@@ -345,6 +351,37 @@ public class Chat extends Activity {
 	 */
 
 	private View getTimestamp(String timestamp) {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+        try {
+            Date date = format.parse(timestamp);
+
+            Calendar yesterday = Calendar.getInstance();
+            yesterday.add(Calendar.DATE, -1);
+
+            Calendar week = Calendar.getInstance();
+            week.add(Calendar.DATE, -7);
+
+            Calendar year = Calendar.getInstance();
+            year.add(Calendar.YEAR, -1);
+
+            if (timestamp.startsWith(new SimpleDateFormat("yyyy-MM-dd").format(new Date()))) {
+                timestamp = "Heute";
+            } else if (timestamp.startsWith(new SimpleDateFormat("yyyy-MM-dd").format(yesterday.getTime()))) {
+                timestamp = "Gestern";
+            } else if (date.after(week.getTime())) {
+                // Week
+                DateFormat f = new SimpleDateFormat("EEEE", Locale.GERMAN);
+                timestamp = f.format(date);
+            } else if (date.after(year.getTime())) {
+                DateFormat f = new SimpleDateFormat("d. MMMM", Locale.GERMAN);
+                timestamp = f.format(date);
+            } else {
+                DateFormat f = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN);
+                timestamp = f.format(date);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 		LinearLayout view = new LinearLayout(this);
 		view.setPadding(48 + 36, 8, 48, 8);
 		view.setGravity(Gravity.CENTER);

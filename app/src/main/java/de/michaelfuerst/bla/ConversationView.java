@@ -14,6 +14,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
 /**
  * @author Michael
  * 
@@ -96,11 +103,51 @@ public class ConversationView {
         TextView t = (TextView)q.findViewById(R.id.chatName);
         t.setText(name);
 
-
 		String text = BlaNetwork.getInstance().getLastMessage(nick);
+        String time = BlaNetwork.getInstance().getLastMessageTime(nick);
         TextView t2 = (TextView)q.findViewById(R.id.chatMessage);
         TextView t3 = (TextView)q.findViewById(R.id.chatTime);
-        t3.setText(BlaNetwork.getInstance().getLastMessageTime(nick));
+
+        if (time != null && !time.equals("")) {
+            DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+            try {
+                Date date = format.parse(time);
+
+                Calendar yesterday = Calendar.getInstance();
+                yesterday.add(Calendar.DATE, -1);
+
+                Calendar week = Calendar.getInstance();
+                week.add(Calendar.DATE, -7);
+
+                Calendar year = Calendar.getInstance();
+                year.add(Calendar.YEAR, -1);
+
+                if (time.startsWith(new SimpleDateFormat("yyyy-MM-dd").format(new Date()))) {
+                    // TODAY
+                    DateFormat f = new SimpleDateFormat("HH:mm", Locale.GERMAN);
+                    time = "Heute, " + f.format(date);
+                } else if (time.startsWith(new SimpleDateFormat("yyyy-MM-dd").format(yesterday.getTime()))) {
+                    // Yesterday
+                    DateFormat f = new SimpleDateFormat("HH:mm", Locale.GERMAN);
+                    time = "Gestern, " + f.format(date);
+                } else if (date.after(week.getTime())) {
+                    // Week
+                    DateFormat f = new SimpleDateFormat("EEEE, HH:mm", Locale.GERMAN);
+                    time = f.format(date);
+                } else if (date.after(year.getTime())) {
+                    // YEAR
+                    DateFormat f = new SimpleDateFormat("d. MMMM", Locale.GERMAN);
+                    time = f.format(date);
+                } else {
+                    DateFormat f = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN);
+                    time = f.format(date);
+                }
+
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        t3.setText(time);
 
 		if (BlaNetwork.getInstance().getMarkedConversations().contains(nick)) {
 			t2.setTextColor(Color.rgb(130, 200, 130));
