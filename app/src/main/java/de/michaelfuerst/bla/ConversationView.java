@@ -154,7 +154,6 @@ public class ConversationView {
 		} else {
 			t2.setTextColor(Color.LTGRAY);
 		}
-		if (!text.equals(" "))
-			t2.setText("> " + text);
+		t2.setText(text);
 	}
 }
