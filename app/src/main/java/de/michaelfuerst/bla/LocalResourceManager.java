@@ -24,6 +24,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Environment;
 import android.util.Log;
 import android.util.TypedValue;
 
@@ -34,6 +35,11 @@ public class LocalResourceManager {
 	@SuppressWarnings("unchecked")
 	private HashMap<String, Integer> usages = new HashMap();
 	public int maxPriority = 10;
+
+    public String getImagePath(Context ctx, String path) {
+        return Environment.getExternalStorageDirectory()
+                + "/Pictures/BlaChat/" + path.split("/")[path.split("/").length - 1].split("\\.")[0] + ".png";
+    }
 
 	public void setPriority(String key, int value) {
 		usages.put(key, value);
@@ -59,10 +65,10 @@ public class LocalResourceManager {
         maxSize = maxSize * px;
         setPriority(path, maxPriority);
 
-        String preFile = path.split("/")[path.split("/").length - 1];
-        final String filename = ctx.getApplicationInfo().dataDir + "/Pictures/" + preFile.split("\\.")[0] + ".png";
+        final String filename = getImagePath(ctx, path);
 
-        File sysPath = new File(ctx.getApplicationInfo().dataDir  + "/Pictures");
+        File sysPath = new File(Environment.getExternalStorageDirectory()
+                + "/Pictures/BlaChat/");
 
         if (!sysPath.exists()) {
             if (!sysPath.mkdirs()) return null;

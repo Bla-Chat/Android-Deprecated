@@ -313,7 +313,7 @@ public class Chat extends Activity {
 					double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
 							r.getDisplayMetrics());
 					final int res = (int)(PROFILE_IMAGE_SIZE * px);
-					
+
 					RelativeLayout v = new RelativeLayout(this);
 					v.setMinimumHeight(res);
 					v.setMinimumWidth(res);
@@ -346,7 +346,7 @@ public class Chat extends Activity {
 	/*
 	 * private View getFileView(String path) { // TODO Auto-generated method
 	 * stub return null; }
-	 * 
+	 *
 	 * private View getVideoView(String path) { VideoView vv = new
 	 * VideoView(this); vv.setMediaController(new MediaController(this));
 	 * vv.setVideoURI(Uri.parse(path)); vv.start(); return vv; }
@@ -424,9 +424,8 @@ public class Chat extends Activity {
 
 	private View getImageView(final String path) {
 		final ImageView iv = new ImageView(this);
-		String preFile = path.split("/")[path.split("/").length - 1];
-		final String filename = getApplicationInfo().dataDir
-				+ "/Pictures/" + preFile.split("\\.")[0] + ".png";
+
+		final String filename = manager.getImagePath(this, path);
 		iv.setOnTouchListener(new OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
@@ -439,13 +438,13 @@ public class Chat extends Activity {
 				return true;
 			}
 		});
-		
+
 		Resources r = this.getResources();
 		double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
 				r.getDisplayMetrics());
 		int res = (int) (IMAGE_MAX_HEIGHT * px);
 		int resW = (int) (IMAGE_MAX_WIDTH * px);
-		
+
 		iv.setMaxHeight(res);
 		iv.setMaxWidth(resW);
 		iv.setMinimumHeight(res);
@@ -735,7 +734,7 @@ public class Chat extends Activity {
 		double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
 				r.getDisplayMetrics());
 		final int size = (int)(PROFILE_IMAGE_SIZE * px);
-		
+
 		final ImageView iv = new ImageView(ctx);
 		iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
 		//iv.setAdjustViewBounds(true);
