@@ -315,7 +315,7 @@ public class BlaNetwork extends Service implements Runnable {
 	 */
 	private void onReceiveMessage(String trigger, String conversation,
 			String text, String time) {
-		if (!conversation.equals(this.activeConversation) || status >= 120) {
+		if (!trigger.equals(getUser()) && (!conversation.equals(this.activeConversation) || status >= 120)) {
 			if (text.startsWith("#image")) {
 				text = "Image received";
 			} else if (text.startsWith("#video")) {
@@ -444,6 +444,8 @@ public class BlaNetwork extends Service implements Runnable {
 	 *            The conversation where to post it.
 	 */
 	public String send(String message, String conversation) {
+        message = message.replaceAll("\\\\", "\\\\\\\\");
+        message = message.replaceAll("\"", "\\\\\"");
 		if (!isActive()) {
 			throw new NullPointerException("Logindata must be set first.");
 		}
