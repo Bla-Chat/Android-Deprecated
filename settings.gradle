@@ -1,3 +1,1 @@
-include ':app', ':xjcp-lib', 'pc'
-project(':xjcp-lib').projectDir = new File(settingsDir, "../jXJCP-Lib")
-project(':pc').projectDir = new File(settingsDir, "../PC")
+include ':app'
