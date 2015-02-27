@@ -4,6 +4,7 @@
 
 package de.michaelfuerst.bla;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -72,7 +73,7 @@ public class ConversationView {
         return q;
 	}
 
-	private static void createChilds(LocalResourceManager manager, LinearLayout q, Context parent, String name, String nick,
+	private static void createChilds(LocalResourceManager manager, LinearLayout q, Activity parent, String name, String nick,
 			String user) {
 		String s[] = nick.split(",");
 		String localNick = nick;
@@ -90,15 +91,8 @@ public class ConversationView {
         ImageView iv = (ImageView)(q.findViewById(R.id.chatImage));
         String path = BlaNetwork.getServer(parent)
                 + "/imgs/profile_" + localNick + ".png";
-        Drawable preload = manager.getDrawable(parent, BlaNetwork.getServer(parent) + "/imgs/user.png",
-                PROFILE_IMAGE_SIZE, 1);
-        Drawable image = manager.getDrawable(parent, path,
-                PROFILE_IMAGE_SIZE, 1);
-        if (image != null) {
-            iv.setImageDrawable(image);
-        } else if (preload != null) {
-            iv.setImageDrawable(preload);
-        }
+
+        new FutureImageView(parent, iv, manager.getDrawable(parent, path, PROFILE_IMAGE_SIZE)).start();
 
         TextView t = (TextView)q.findViewById(R.id.chatName);
         t.setText(name);

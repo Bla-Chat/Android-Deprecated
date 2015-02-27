@@ -35,7 +35,7 @@ public class ChatHistoryThread extends
 	@Override
 	protected void onPostExecute(ChatMessage[] result) {
 		if (result != null) {
-			Log.d("ChatHistoryThread", "Updating history");
+			Log.d("BlaChat", "Updating history");
 			parent.drawHistory(result);
 		}
 	}

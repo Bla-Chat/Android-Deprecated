@@ -49,7 +49,7 @@ public class LoginNetworkThread extends Thread {
 					return;
 				}
 			}
-			Log.d("LoginNetworkThread", "Login successful.");
+			Log.d("BlaChat", "Login successful.");
 			activity.finish();
 		} else {
 			while(!BlaNetwork.getInstance().tryLogin()) {
@@ -59,7 +59,7 @@ public class LoginNetworkThread extends Thread {
 					return;
 				}
 			}
-			Log.d("LoginNetworkThread", "Login successful with parameters.");
+			Log.d("BlaChat", "Login successful with parameters.");
 		}
 	}
 }

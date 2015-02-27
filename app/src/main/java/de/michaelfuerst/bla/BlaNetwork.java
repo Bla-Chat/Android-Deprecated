@@ -53,8 +53,6 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import net.michaelfuerst.xjcp.XJCP;
-
 /**
  * Retrieves and sends network messages.
  * 
@@ -62,7 +60,7 @@ import net.michaelfuerst.xjcp.XJCP;
  * @version 1.0
  */
 public class BlaNetwork extends Service implements Runnable {
-    public static final String UPDATE_SERVER = "https://raw.github.com/Bla-Chat/Android/master/app";
+    public static final String UPDATE_SERVER = "https://raw.github.com/Bla-Chat/Android-Deprecated/master/app";
     private static BlaNetwork instance = null;
 
 	public final static String SEPARATOR = "◘";
@@ -133,8 +131,6 @@ public class BlaNetwork extends Service implements Runnable {
         lastMessages = new HashMap<String, String>();
         lastMessagesTime = new HashMap<String, String>();
 
-        XJCP xjcp;
-        Log.d("XJCP", "XJCP Initialized!");
 		synchronized (BlaNetwork.class) {
 			BlaNetwork.class.notifyAll();
 		}
@@ -184,7 +180,7 @@ public class BlaNetwork extends Service implements Runnable {
                 try {
                     t.join();
                 } catch (InterruptedException e) {
-                    Log.d("Interruptedexception", "We were interrupted!");
+                    Log.d("BlaChat", "We were interrupted!");
                     return;
                 }
             }
@@ -289,18 +285,18 @@ public class BlaNetwork extends Service implements Runnable {
 		} else if (type.equals("onMessageHandled")) {
 			unmarkLocal(msg);
 			removeNotification(msg);
-			Log.d("Network", "Handled: " + trigger + ";" + msg);
+			Log.d("BlaChat", "Handled: " + trigger + ";" + msg);
 		} else if (type.equals("onConversation")) {
 			updateConversations();
 		} else if (type.equals("forceReload")) {
 			forceReload(msg);
 		} else {
-			Log.d("Network", type + ":" + msg);
+			Log.d("BlaChat", type + ":" + msg);
 		}
 	}
 
     private void forceReload(String msg) {
-        Log.d("Remove file", "TODO" + msg);
+        Log.d("BlaChat", "TODO" + msg);
     }
 
     private void setStatus(int level) {
@@ -408,7 +404,7 @@ public class BlaNetwork extends Service implements Runnable {
         }
 		if ((message == null || message.equals("")) && !offline) {
 			offline = true;
-			Log.d("ConnectionError", jsonString);
+			Log.d("BlaChat", jsonString);
 			requestPause();
 		} else if (offline) {
 			offline = false;
@@ -676,7 +672,7 @@ public class BlaNetwork extends Service implements Runnable {
 	 *            The listener for the events.
 	 */
 	public void attachMessageListener(MessageListener listener) {
-		Log.d("HangoutNetwork", "Attached: " + listener.toString());
+		Log.d("BlaChat", "Attached: " + listener.toString());
 		listeners.add(listener);
 	}
 
@@ -684,7 +680,7 @@ public class BlaNetwork extends Service implements Runnable {
 	 * Update the conversation list.
 	 */
 	public void updateConversations() {
-		Log.d("Conversations", "UpdateStart");
+		Log.d("BlaChat", "UpdateStart");
 		synchronized (BlaNetwork.class) {
 			while (!isRunning) {
 				try {
@@ -694,7 +690,7 @@ public class BlaNetwork extends Service implements Runnable {
 				}
 			}
 		}
-		Log.d("Conversations", "Update");
+		Log.d("BlaChat", "Update");
 		String jsonString = "{\"type\":\"onGetChats\", \"msg\":{\"user\":\""
 				+ nick + "\" , \"password\": \"" + pw + "\", \"id\": \"" + id
 				+ "\"}}";
@@ -704,7 +700,7 @@ public class BlaNetwork extends Service implements Runnable {
 		}
         synchronized (this) {
 		    try {
-			    Log.d("Conversations", result);
+			    Log.d("BlaChat", result);
 			    JSONArray ja = new JSONArray(result);
 			    conversations.clear();
 			    conversationNicks.clear();
@@ -837,7 +833,7 @@ public class BlaNetwork extends Service implements Runnable {
                     try {
                         Thread.sleep(1500);
                     } catch(InterruptedException i) {
-                        Log.d("BlaNetwork", "Add notification was interrupted");
+                        Log.d("BlaChat", "Add notification was interrupted");
                     }
                     update = false;
                     updateNotifications(vibrate);
@@ -874,15 +870,15 @@ public class BlaNetwork extends Service implements Runnable {
 
 		PendingIntent resultIntent;
 		if (name != null && !conversation.equals("ERROR")) {
-            Log.d("Notification", conversation+"|"+name);
+            Log.d("BlaChat", conversation+"|"+name);
 			Intent intent = new Intent(this, Chat.class);
 			intent.putExtra("chatname", name);
 			intent.putExtra("chatnick", conversation);
-            Log.d("Notification", conversation + "|" + name);
+            Log.d("BlaChat", conversation + "|" + name);
 			resultIntent = PendingIntent.getActivity(this, 0,
 					intent, Notification.FLAG_AUTO_CANCEL | PendingIntent.FLAG_UPDATE_CURRENT);
 		} else {
-            Log.d("Notification", conversation+"|"+name);
+            Log.d("BlaChat", conversation+"|"+name);
 			Intent intent = new Intent(getBaseContext(), Conversation.class);
 			resultIntent = PendingIntent.getActivity(getBaseContext(), 0,
 					intent, Notification.FLAG_AUTO_CANCEL | PendingIntent.FLAG_UPDATE_CURRENT);
@@ -919,7 +915,7 @@ public class BlaNetwork extends Service implements Runnable {
 	}
 
 	public void removeNotification(String conversation) {
-		Log.d("Notification", "Removed: " + conversation);
+		Log.d("BlaChat", "Removed: " + conversation);
 		LocalNotification notification = new LocalNotification();
 		loadNotifications();
 		notification.conversation = conversation;
@@ -945,7 +941,7 @@ public class BlaNetwork extends Service implements Runnable {
 		SharedPreferences.Editor editor = app_preferences.edit();
 		editor.putString("notifications_" + nick, temp);
 		editor.commit();
-		Log.d("HangoutNetwork", "Stored Notifications");
+		Log.d("BlaChat", "Stored Notifications");
 	}
 
 	private void loadNotifications() {
@@ -965,7 +961,7 @@ public class BlaNetwork extends Service implements Runnable {
                 notifications.add(n);
             }
         }
-		Log.d("HangoutNetwork", "Loaded Notifications");
+		Log.d("BlaChat", "Loaded Notifications");
 	}
 
 	private void updateNotifications(boolean vibrate) {
@@ -1158,7 +1154,7 @@ public class BlaNetwork extends Service implements Runnable {
                     }
 
                     String result = response.toString();
-                    Log.d("Image sending", result);
+                    Log.d("BlaChat", result);
                 } finally {
                     if (dis != null)
                         dis.close();
@@ -1328,7 +1324,7 @@ public class BlaNetwork extends Service implements Runnable {
 	}
 
 	public void detachMessageListener(MessageListener toRemove) {
-		Log.d("HangoutNetwork", "Detached: " + toRemove.toString());
+		Log.d("BlaChat", "Detached: " + toRemove.toString());
 		listeners.remove(toRemove);
 	}
 
@@ -1618,7 +1614,7 @@ public class BlaNetwork extends Service implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		Log.d("ERROR", result);
+		Log.d("BlaChat", result);
 		return result;
     }
 

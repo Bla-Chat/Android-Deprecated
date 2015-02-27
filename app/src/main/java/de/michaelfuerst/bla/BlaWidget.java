@@ -25,10 +25,10 @@ public class BlaWidget extends AppWidgetProvider {
 		if (context == null || appWidgetManager == null || appWidgetIds == null
 				|| BlaNetwork.getInstance() == null
 				|| !BlaNetwork.getInstance().isRunning()) {
-			Log.d("BlaWidget", "Missing information");
+			Log.d("BlaChat", "Missing information");
 			return;
 		}
-		Log.d("BlaWidget", "Updating widgets");
+		Log.d("BlaChat", "Updating widgets");
 		// Perform this loop procedure for each App Widget that belongs to this
 		// provider
         for (int appWidgetId : appWidgetIds) {

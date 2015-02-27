@@ -26,7 +26,7 @@ import android.util.Log;
  * 
  */
 public class UpdateApp extends AsyncTask<String, Void, Void> {
-	public static final String VERSION = "2.0.3.2";
+	public static final String VERSION = "2.0.3.3";
 	private Context context;
 
 	public void setContext(Context contextf) {
@@ -36,7 +36,7 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 	private boolean needsUpdate(String server) {
 		try {
 			// Create a new HttpClient and Post Header
-            Log.d("UpdateApp", server + "/version.txt");
+            Log.d("BlaChat", server + "/version.txt");
             HttpURLConnection conn = (HttpURLConnection)new URL(server + "/version.txt").openConnection();
             conn.setDoInput(true);
             conn.setConnectTimeout(10000); // timeout 10 secs
@@ -48,14 +48,14 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 
 			while ((next = bufferedReader.readLine()) != null) {
                 if (next.contains("Page not found")) {
-                    Log.d("UpdateApp", "Page not found error!");
+                    Log.d("BlaChat", "Page not found error!");
                     return false;
                 }
                 String[] split = next.split("\\.");
                 String[] versions = VERSION.split("\\.");
 
 				if (split.length > 2 && versions.length > 2 && isLargerOrEqual(split, versions)) {
-                    Log.d("UpdateApp", "Your version is still supported.");
+                    Log.d("BlaChat", "Your version is still supported.");
 					return false;
 				}
 			}
@@ -100,27 +100,27 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
             ConnectivityManager mgrConn = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo mWifi = mgrConn.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
             if (mWifi == null || !mWifi.isConnected()) {
-                Log.d("UpdateApp", "Skipped update due to missing WLAN!");
+                Log.d("BlaChat", "Skipped update due to missing WLAN!");
                 return null;
             }
-			Log.d("UpdateApp", "Updating!");
+			Log.d("BlaChat", "Updating!");
 			URL url = new URL(arg0[0] + "/bla.apk");
 			HttpURLConnection c = (HttpURLConnection) url.openConnection();
             c.setDoInput(true);
             c.setConnectTimeout(10000); // timeout 10 secs
             c.connect();
 
-			String PATH = Environment.getExternalStorageDirectory()+"/Download/";
+			String PATH = context.getApplicationInfo().dataDir + "/Download/";
 			File file = new File(PATH);
 			File outputFile = new File(file, "bla_update.apk");
 			if (outputFile.exists()) {
 				if(!outputFile.delete()) {
-                    Log.d("UpdateApp", "Cannot delete old file!");
+                    Log.d("BlaChat", "Cannot delete old file!");
                     return null;
                 }
 			} else {
                 if(!(!file.exists() && !file.mkdirs())) {
-                    Log.d("UpdateApp", "Cannot create directories!");
+                    Log.d("BlaChat", "Cannot create directories!");
                 }
             }
 			FileOutputStream fos = new FileOutputStream(outputFile);
@@ -145,7 +145,7 @@ public class UpdateApp extends AsyncTask<String, Void, Void> {
 			context.startActivity(intent);
 
 		} catch (Exception e) {
-			Log.e("UpdateApp", "Update error! " + e.getMessage());
+			Log.e("BlaChat", "Update error! " + e.getMessage());
 		}
 		return null;
 	}

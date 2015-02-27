@@ -153,7 +153,7 @@ public class SettingsActivity extends PreferenceActivity {
 
                     Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
                             .show();
-                    Log.d("Chat", "Starting image upload");
+                    Log.d("BlaChat", "Starting image upload");
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... params) {
@@ -172,7 +172,7 @@ public class SettingsActivity extends PreferenceActivity {
                         protected void onPostExecute(Void v) {
                             Toast.makeText(that, "Uploaded image",
                                     Toast.LENGTH_LONG).show();
-                            Log.d("Settings", "Done image upload");
+                            Log.d("BlaChat", "Done image upload");
                         }
                     }.execute();
                 } else {
@@ -180,7 +180,7 @@ public class SettingsActivity extends PreferenceActivity {
                     Toast.makeText(this, "Uploading image", Toast.LENGTH_LONG)
                             .show();
                     final SettingsActivity that = this;
-                    Log.d("Settings", "Starting image upload");
+                    Log.d("BlaChat", "Starting image upload");
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... params) {
@@ -199,7 +199,7 @@ public class SettingsActivity extends PreferenceActivity {
                         protected void onPostExecute(Void v) {
                             Toast.makeText(that, "Uploaded image",
                                     Toast.LENGTH_LONG).show();
-                            Log.d("Settings", "Done image upload");
+                            Log.d("BlaChat", "Done image upload");
                         }
                     }.execute();
                 }

@@ -8,6 +8,14 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -20,92 +28,99 @@ import android.util.Log;
 import android.util.TypedValue;
 
 public class LocalResourceManager {
+    private final ExecutorService threadPool =  Executors.newFixedThreadPool(1);
 	@SuppressWarnings("unchecked")
-	private HashMap<String, Drawable>[] map = new HashMap[2];
+	private HashMap<String, Future<Drawable>> map = new HashMap();
 	@SuppressWarnings("unchecked")
-	private HashMap<String, Integer>[] usages = new HashMap[2];
-	private LinkedList<String> fetchQueue = new LinkedList<String>();
+	private HashMap<String, Integer> usages = new HashMap();
 	public int maxPriority = 10;
 
-	public void setPriority(String key, int value, int i) {
-		if (usages[i] == null) {
-			usages[i] = new HashMap<String, Integer>();
-		}
-		usages[i].put(key, value);
+	public void setPriority(String key, int value) {
+		usages.put(key, value);
 	}
+
+    public Future<Drawable> getDrawable(final Context ctx, final String path, final double maxSize) {
+        if (!map.containsKey(path)) {
+            map.put(path, threadPool.submit(new Callable<Drawable>() {
+                @Override
+                public Drawable call() throws Exception {
+                    return downloadDrawable(ctx, path, maxSize);
+                }
+            }));
+        }
+        return map.get(path);
+    }
 
 	@SuppressWarnings("deprecation")
-	public Drawable getDrawable(Context ctx, final String path,
-			double maxSize, int i) {
-		Resources r = ctx.getResources();
-		double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
-				r.getDisplayMetrics());
-		maxSize = maxSize * px;
-		if (map[i] == null) {
-			map[i] = new HashMap<String, Drawable>();
-		}
-		setPriority(path, maxPriority, i);
-		if (!map[i].containsKey(path)
-				|| ((BitmapDrawable) map[i].get(path)).getBitmap().isRecycled()) {
-			String preFile = path.split("/")[path.split("/").length - 1];
-            final String filename = ctx.getApplicationInfo().dataDir + "/Pictures/" + preFile.split("\\.")[0] + ".png";
+	private Drawable downloadDrawable(Context ctx, final String path, double maxSize) {
+        Resources r = ctx.getResources();
+        double px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1,
+                r.getDisplayMetrics());
+        maxSize = maxSize * px;
+        setPriority(path, maxPriority);
 
-			File sysPath = new File(ctx.getApplicationInfo().dataDir
-					+ "/Pictures");
-			if (!sysPath.exists()) {
-				if(!sysPath.mkdirs()) return null;
-			}
-			if (!new File(filename).exists()) {
-				if (BlaNetwork.getInstance() == null
-						|| !BlaNetwork.getInstance().isOnline()) {
-					return null;
-				} else {
-					if (fetchQueue.contains(path)) {
-						return null;
-					}
-					fetchQueue.add(path);
-					new Thread() {
-						@Override
-						public void run() {
-							try {
-								URL url = new URL(path);
-								File file = new File(filename);
-								Bitmap bitmap = BitmapFactory.decodeStream(url
-										.openStream());
-								bitmap.compress(CompressFormat.PNG, 100,
-										new FileOutputStream(file));
-								bitmap.recycle();
-								fetchQueue.remove(path);
-							} catch (MalformedURLException e) {
-                                Log.d("LocalResourceManager", "invalid url" + path);
-							} catch (IOException e) {
-								Log.d("LocalResourceManager", "connection unstable");
-							}
-						}
-					}.start();
-					return null;
-				}
-			}
+        String preFile = path.split("/")[path.split("/").length - 1];
+        final String filename = ctx.getApplicationInfo().dataDir + "/Pictures/" + preFile.split("\\.")[0] + ".png";
 
-			BitmapFactory.Options bmpFac = new BitmapFactory.Options();
-			bmpFac.inJustDecodeBounds = true;
-			BitmapFactory.decodeFile(filename, bmpFac);
-			BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-			options.inSampleSize = calculateInSampleSize(bmpFac, maxSize,
-					maxSize);
-			if (options.inSampleSize < 1) {
-				options.inSampleSize = 1;
-			}
-			options.inJustDecodeBounds = false;
-			Bitmap bmp = BitmapFactory.decodeFile(filename, options);
-			if (bmp == null) {
-				return null;
-			}
-			map[i].put(path, new BitmapDrawable(bmp));
-		}
-		return map[i].get(path);
-	}
+        File sysPath = new File(ctx.getApplicationInfo().dataDir  + "/Pictures");
+
+        if (!sysPath.exists()) {
+            if (!sysPath.mkdirs()) return null;
+        }
+        if (!new File(filename).exists()) {
+            while (BlaNetwork.getInstance() == null || !BlaNetwork.getInstance().isOnline()) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            boolean errors = true;
+            for (int i = 0; i < 3 && errors; i++) {
+                try {
+                    URL url = new URL(path);
+                    File file = new File(filename);
+                    Bitmap bitmap = BitmapFactory.decodeStream(url
+                            .openStream());
+                    bitmap.compress(CompressFormat.PNG, 100,
+                            new FileOutputStream(file));
+                    bitmap.recycle();
+                    errors = false;
+                } catch (MalformedURLException e) {
+                    Log.d("BlaChat", "invalid url" + path);
+                } catch (IOException e) {
+                    Log.d("BlaChat", "connection unstable");
+                }
+                if (errors) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            if (errors) {
+                return null;
+            }
+        }
+
+        BitmapFactory.Options bmpFac = new BitmapFactory.Options();
+        bmpFac.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filename, bmpFac);
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        options.inSampleSize = calculateInSampleSize(bmpFac, maxSize,
+                maxSize);
+        if (options.inSampleSize < 1) {
+            options.inSampleSize = 1;
+        }
+        options.inJustDecodeBounds = false;
+        Bitmap bmp = BitmapFactory.decodeFile(filename, options);
+        if (bmp == null) {
+            return null;
+        }
+        return new BitmapDrawable(bmp);
+    }
 
 	private int calculateInSampleSize(BitmapFactory.Options options,
 			double reqWidth, double reqHeight) {

@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.Future;
 
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -132,7 +133,7 @@ public class Chat extends Activity {
 		nick = intent.getStringExtra("chatnick");
 		name = intent.getStringExtra("chatname");
 
-        Log.d("Chat", nick+"|"+name);
+        Log.d("BlaChat", nick+"|"+name);
 
 		setTitle(name);
 
@@ -222,7 +223,7 @@ public class Chat extends Activity {
 
 	public void drawHistory(ChatMessage[] messages) {
 		if (isAlive) {
-			Log.d("Chat", "redrawing history");
+			Log.d("BlaChat", "redrawing history");
 			LinearLayout ll = (LinearLayout) findViewById(R.id.messages);
 			ll.removeAllViews();
 
@@ -422,7 +423,6 @@ public class Chat extends Activity {
 	}
 
 	private View getImageView(final String path) {
-		
 		final ImageView iv = new ImageView(this);
 		String preFile = path.split("/")[path.split("/").length - 1];
 		final String filename = getApplicationInfo().dataDir
@@ -451,13 +451,7 @@ public class Chat extends Activity {
 		iv.setMinimumHeight(res);
 		iv.setMinimumWidth(resW);
 		iv.setScaleType(ScaleType.CENTER_CROP);
-		Drawable image = manager.getDrawable(this, filename,
-				IMAGE_MAX_WIDTH, 0);
-		if (image != null) {
-			iv.setImageDrawable(image);
-		} else {
-			iv.setBackgroundColor(Color.LTGRAY);
-		}
+        new FutureImageView(this, iv, manager.getDrawable(this, path, IMAGE_MAX_WIDTH)).start();
 		return iv;
 	}
 
@@ -749,33 +743,7 @@ public class Chat extends Activity {
 		iv.setMaxHeight(size);
 		iv.setMinimumWidth(size);
 		iv.setMinimumWidth(size);
-
-		Drawable image = manager.getDrawable(ctx, path,
-				size, 0);
-
-		if (image == null) {
-			new AsyncTask<Void, Void, Drawable>() {
-				private String p = "none";
-
-				@Override
-				protected Drawable doInBackground(Void... params) {
-					p = BlaNetwork.getServer(ctx) + "/imgs/user.png";
-
-                    return manager.getDrawable(ctx, p, size, 0);
-				}
-
-				@Override
-				public void onPostExecute(Drawable image) {
-					if (image == null) {
-						iv.setBackgroundColor(Color.rgb(0, 0, 0));
-					} else {
-						iv.setImageDrawable(image);
-					}
-				}
-			}.execute();
-		} else {
-			iv.setImageDrawable(image);
-		}
+        new FutureImageView(this, iv, manager.getDrawable(this, path, size)).start();
 		return iv;
 	}
 }
