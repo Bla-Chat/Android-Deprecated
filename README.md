@@ -10,7 +10,7 @@ And all implemented in only about 3000 to 4000 lines of code.
 Compatible with servers supporting the xjcp-protocol.
 Currently the only software implementing this protocol is BlaChatServer (https://github.com/Bla-Chat/server).
 
-<p><a href="http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidMessages.png"><img src="http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidMessages.png" height="400" target="_blank" /></a> <a href="http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidChats.png"><img src="http://www.michaelfuerst.de/wordpress/wp-content/uploads/2015/02/BlaAndroidChats.png" height="400" target="_blank" /></a></p>
+<p><a href="http://www.michaelfuerst.de/wp-content/uploads/2015/02/BlaAndroidMessages.png"><img src="http://www.michaelfuerst.de/wp-content/uploads/2015/02/BlaAndroidMessages.png" height="400" target="_blank" /></a> <a href="http://www.michaelfuerst.de/wp-content/uploads/2015/02/BlaAndroidChats.png"><img src="http://www.michaelfuerst.de/wp-content/uploads/2015/02/BlaAndroidChats.png" height="400" target="_blank" /></a></p>
 
 ## Installation
 
